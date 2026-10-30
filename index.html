@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>Жизнь в рассрочку</title>
+<style>
+  :root{
+    --bg:#f5f7fa; --card:#ffffff; --ink:#111827; --muted:#6b7280;
+    --green:#059669; --green-bg:#d1fae5; --red:#dc2626; --red-bg:#fee2e2;
+    --blue:#2563eb; --blue-bg:#dbeafe; --line:#e5e7eb;
+    --shadow:0 1px 3px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.06);
+    --radius:20px; --accent:#1e293b;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:15px;line-height:1.5}
+  #app{max-width:520px;margin:0 auto;min-height:100vh;background:var(--bg);padding-bottom:150px}
+  .screen{display:none;padding:14px 16px 24px;animation:fade .2s ease}
+  .screen.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  h1,h2,h3{margin:0 0 8px;letter-spacing:-.3px}
+  h1{font-size:24px;font-weight:800}
+  h2{font-size:18px}
+  h3{font-size:15px}
+  .card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:12px;border:1px solid rgba(0,0,0,.02)}
+  .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .muted{color:var(--muted);font-size:13px}
+  .big{font-size:30px;font-weight:800;letter-spacing:-.8px}
+  .num{font-variant-numeric:tabular-nums}
+  .green{color:var(--green)} .red{color:var(--red)} .blue{color:var(--blue)}
+  .pill{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;background:var(--blue-bg);color:var(--blue);font-weight:700}
+  .pill.g{background:var(--green-bg);color:var(--green)} .pill.r{background:var(--red-bg);color:var(--red)}
+  button{cursor:pointer;font-family:inherit;font-size:15px;border:none;border-radius:14px;padding:12px 16px;background:var(--blue);color:#fff;font-weight:700;transition:transform .05s,opacity .15s}
+  button:active{transform:scale(.98)}
+  button.ghost{background:transparent;color:var(--blue);border:1.5px solid var(--line)}
+  button.gray{background:#f3f4f6;color:var(--ink)}
+  button.green{background:var(--green)}
+  button.red{background:var(--red)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap}
+  .btn-row button{flex:1 1 auto}
+  .progress{height:8px;background:#eef2f7;border-radius:999px;overflow:hidden}
+  .progress > i{display:block;height:100%;background:var(--green);border-radius:999px;transition:width .3s}
+  .field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+  input[type=number],input[type=text],select{font-family:inherit;font-size:16px;padding:12px;border:1.5px solid var(--line);border-radius:12px;width:100%;background:#fff}
+  .list-item{display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .list-item:last-child{border-bottom:none}
+  .nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:flex;max-width:520px;margin:0 auto;z-index:20;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 20px rgba(0,0,0,.04)}
+  .nav .item{flex:1;text-align:center;padding:10px 2px 11px;font-size:11px;color:var(--muted);cursor:pointer;user-select:none;font-weight:600}
+  .nav .item .ico{font-size:20px;display:block;line-height:1.1;margin-bottom:2px}
+  .nav .item.on{color:var(--blue)}
+  .modal-wrap{position:fixed;inset:0;background:rgba(17,24,39,.5);display:none;align-items:flex-end;justify-content:center;z-index:50;padding:0}
+  .modal-wrap.on{display:flex}
+  .modal{background:#fff;max-width:520px;width:100%;border-radius:24px 24px 0 0;padding:20px 18px 28px;max-height:90vh;overflow:auto;animation:up .25s ease}
+  @keyframes up{from{transform:translateY(50px);opacity:.5}to{transform:none;opacity:1}}
+  .toast{position:fixed;left:50%;bottom:170px;transform:translateX(-50%);background:var(--accent);color:#fff;padding:12px 18px;border-radius:14px;font-size:14px;z-index:80;opacity:0;transition:opacity .25s;max-width:90%;text-align:center;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+  .toast.on{opacity:1}
+  .kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line)}
+  .kv:last-child{border-bottom:none}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .chip{background:#f8fafc;border-radius:16px;padding:14px;border:1px solid rgba(0,0,0,.03)}
+  .chip .v{font-size:20px;font-weight:800;margin-top:2px}
+  .event-hero{background:linear-gradient(135deg,#eff6ff,#f8fafc);border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid rgba(37,99,235,.08)}
+  .monthly-row{display:flex;justify-content:space-between;padding:4px 0}
+  .divider{height:1px;background:var(--line);margin:12px 0}
+  .goal{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+  .goal .top{display:flex;justify-content:space-between;font-size:13px;font-weight:600}
+  .hint{font-size:12px;color:var(--muted);margin-top:6px}
+  .status-bar{position:sticky;top:0;z-index:9;background:rgba(245,247,250,.97);backdrop-filter:blur(10px);padding:10px 16px 12px;border-bottom:1px solid var(--line);margin:-14px -16px 12px}
+  .mini-stat{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;font-size:10px;color:var(--muted);font-weight:600}
+  .mini-stat .v{font-size:13px;font-weight:800;color:var(--ink)}
+  .mini-bar{height:4px;width:100%;background:#e5e7eb;border-radius:999px;overflow:hidden;margin-top:3px}
+  .mini-bar > i{display:block;height:100%;border-radius:999px}
+  .action-bar{position:fixed;left:0;right:0;bottom:66px;max-width:520px;margin:0 auto;padding:10px 16px;background:rgba(255,255,255,.98);backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:15;padding-bottom:calc(10px + env(safe-area-inset-bottom) / 2);box-shadow:0 -4px 20px rgba(0,0,0,.05)}
+  .action-bar button{width:100%;padding:15px;font-size:16px;border-radius:16px;font-weight:800}
+  .action-bar .sub{text-align:center;font-size:11px;color:var(--muted);margin-top:5px}
+  .mode-card{border:2px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all .2s}
+  .mode-card.on{border-color:var(--blue);background:var(--blue-bg)}
+  .mode-card h3{margin-bottom:4px}
+  .section-title{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px}
+  .seg{display:flex;background:#f3f4f6;border-radius:12px;padding:3px;gap:3px;margin-bottom:10px}
+  .seg button{flex:1;background:transparent;color:var(--muted);padding:8px;font-size:13px;border-radius:10px}
+  .seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="statusBarHost"></div>
+  <div id="screens"></div>
+  <div id="actionBarHost"></div>
+  <div class="nav" id="nav"></div>
+</div>
+<div class="modal-wrap" id="modalWrap"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ================= ДЕНЬГИ ================= */
+const T = 100;
+const tng = v => Math.round(v * T);
+const fmt = v => (v / T).toLocaleString('ru-RU', {maximumFractionDigits:0}) + ' ₸';
+const fmt0 = v => Math.round(v / T).toLocaleString('ru-RU');
+const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
+const rnd = (a,b)=>a+Math.random()*(b-a);
+const rndInt = (a,b)=>Math.floor(rnd(a,b+1));
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+const shuffle = arr => arr.map(v=>[v,Math.random()]).sort((a,b)=>a[1]-b[1]).map(x=>x[0]);
+const uid = () => Math.random().toString(36).slice(2,10);
+
+/* ================= ФИНАНСЫ ================= */
+const Fin = {
+  annuity(P, yearlyPct, months){
+    if (months <= 0) return 0;
+    const r = yearlyPct/100/12;
+    if (r === 0) return Math.round(P / months);
+    const k = Math.pow(1+r, months);
+    return Math.round(P * r * k / (k - 1));
+  },
+  monthInterest(P, yearlyPct){ return Math.round(P * (yearlyPct/100/12)); },
+  applyPayment(balance, yearlyPct, payment){
+    const interest = Math.min(this.monthInterest(balance, yearlyPct), payment);
+    let principal = payment - interest;
+    if (principal > balance){ principal = balance; }
+    const paid = interest + principal;
+    return { interest, principal, paid, newBalance: balance - principal };
+  },
+  prepay(loan, extra, strategy){
+    extra = Math.min(extra, loan.balance);
+    if (extra <= 0) return loan;
+    const nb = loan.balance - extra;
+    if (nb === 0){ return {...loan, balance:0, monthsLeft:0, monthly:0, totalExtra:(loan.totalExtra||0)+extra}; }
+    if (strategy === 'term'){
+      const r = loan.rate/100/12;
+      let months = loan.monthsLeft;
+      if (loan.monthly > this.monthInterest(nb, loan.rate)){
+        months = Math.ceil(Math.log(loan.monthly/(loan.monthly - nb*r))/Math.log(1+r));
+        if (!isFinite(months) || months <= 0) months = loan.monthsLeft;
+        months = Math.min(months, loan.monthsLeft);
+      }
+      return {...loan, balance: nb, monthsLeft: months, totalExtra:(loan.totalExtra||0)+extra};
+    } else {
+      const monthly = this.annuity(nb, loan.rate, loan.monthsLeft);
+      return {...loan, balance: nb, monthly, totalExtra:(loan.totalExtra||0)+extra};
+    }
+  },
+  totalInterestForecast(balance, yearlyPct, monthsLeft, monthly){
+    if (balance <= 0 || monthsLeft <= 0) return 0;
+    let bal = balance, interest = 0, guard = 0;
+    while (bal > 0 && guard++ < 2000){
+      const i = Math.min(this.monthInterest(bal, yearlyPct), monthly);
+      const p = Math.min(bal, monthly - i);
+      interest += i; bal -= p; if (p <= 0) break;
+    }
+    return interest;
+  }
+};
+
+/* ================= ИМЕНА С ОКОНЧАНИЯМИ ================= */
+const FIRST_NAMES_M = ['Асет','Серик','Данияр','Ержан','Нурлан','Алишер','Тимур','Арман','Даулет','Руслан','Максим','Алексей','Дмитрий','Иван','Азамат','Ерлан','Бекзат','Санжар','Мирас','Адиль','Алихан','Омар','Амир'];
+const FIRST_NAMES_F = ['Айгерим','Динара','Асель','Гульнара','Мадина','Зарина','Жанна','Алия','Камила','Сабина','Наталья','Ольга','Елена','Анна','Аида','Молдир','Аружан','Ботагоз','Томирис','Айгуль','Айша','Айзере','Инжу'];
+const LAST_M = ['Ахметов','Сериков','Данияров','Ержанов','Нурланов','Алишеров','Тимуров','Арманов','Даулетов','Русланов','Смирнов','Иванов','Кузнецов','Петров','Азаматов','Ерланов','Бекзатов','Санжаров','Мирасов','Адилев','Алиханов','Омаров','Амиров'];
+const LAST_F = LAST_M.map(n => n.endsWith('ов') ? n+'а' : n.endsWith('ев') ? n+'а' : n+'а');
+
+function randName(gender){
+  if (gender === 'f'){
+    return pick(FIRST_NAMES_F) + ' ' + pick(LAST_F);
+  }
+  return pick(FIRST_NAMES_M) + ' ' + pick(LAST_M);
+}
+
+/* ================= КАТАЛОГИ ================= */
+const CAREERS = [
+  {id:'office', name:'Офисный сотрудник', base:tng(450000), req:{}, risk:0.02},
+  {id:'sales',  name:'Специалист по продажам', base:tng(420000), req:{comm:1}, risk:0.05},
+  {id:'accountant', name:'Бухгалтер', base:tng(440000), req:{anal:1}, risk:0.02},
+  {id:'analyst', name:'Аналитик', base:tng(560000), req:{anal:2, digital:1}, risk:0.03},
+  {id:'it', name:'IT-специалист', base:tng(720000), req:{digital:2, anal:1}, risk:0.03},
+  {id:'designer', name:'Дизайнер', base:tng(500000), req:{digital:1, comm:1}, risk:0.06},
+  {id:'driver', name:'Водитель', base:tng(340000), req:{}, risk:0.04},
+  {id:'logistics', name:'Специалист по логистике', base:tng(480000), req:{anal:1, comm:1}, risk:0.03},
+  {id:'manager', name:'Менеджер', base:tng(620000), req:{comm:2, mgmt:1}, risk:0.03},
+  {id:'civil', name:'Госслужащий', base:tng(440000), req:{comm:1, anal:1}, risk:0.01, stable:true},
+  {id:'entrepreneur', name:'Предприниматель', base:tng(500000), req:{comm:2, mgmt:2}, risk:0.10},
+];
+const LOW_JOBS = [
+  {id:'courier', name:'Курьер', base:tng(220000), req:{}},
+  {id:'loader', name:'Грузчик', base:tng(200000), req:{}},
+  {id:'taxi_driver', name:'Таксист', base:tng(240000), req:{car:true}},
+  {id:'shop', name:'Продавец', base:tng(230000), req:{}},
+  {id:'cleaner', name:'Уборщик', base:tng(180000), req:{}},
+];
+
+const COURSES = [
+  {id:'excel', name:'Excel для аналитики', weeks:4, cost:tng(50000), effect:{anal:1}},
+  {id:'python', name:'Python: базовый', weeks:12, cost:tng(160000), effect:{digital:2, anal:1}},
+  {id:'design', name:'Дизайн-мышление', weeks:8, cost:tng(110000), effect:{digital:1, comm:1}},
+  {id:'sales', name:'Переговоры', weeks:6, cost:tng(80000), effect:{comm:2}},
+  {id:'mgmt', name:'Управление командой', weeks:10, cost:tng(150000), effect:{mgmt:2, comm:1}},
+  {id:'finance', name:'Финансы', weeks:6, cost:tng(90000), effect:{anal:1, mgmt:1}},
+  {id:'english', name:'Английский', weeks:10, cost:tng(130000), effect:{comm:1, digital:1}},
+  {id:'sewing', name:'Швея', weeks:3, cost:tng(35000), effect:{prof:2}},
+  {id:'welding', name:'Сварщик', weeks:4, cost:tng(45000), effect:{prof:2}},
+  {id:'carpentry', name:'Столяр', weeks:3, cost:tng(40000), effect:{prof:2}},
+  {id:'electric', name:'Электрик', weeks:4, cost:tng(55000), effect:{prof:2}},
+  {id:'cook', name:'Повар', weeks:3, cost:tng(40000), effect:{prof:2, comm:1}},
+];
+
+const SUBJOBS = [
+  {id:'move',   name:'Помочь с переездом', pay:[25000,45000], fatigue:12, req:{}, limit:2},
+  {id:'delivery', name:'Развозка товара', pay:[30000,50000], fatigue:15, req:{}, limit:2},
+  {id:'design', name:'Срочный дизайн', pay:[50000,90000], fatigue:10, req:{digital:1}, limit:2},
+  {id:'event',  name:'Работа на мероприятии', pay:[25000,45000], fatigue:12, req:{comm:1}, limit:2},
+  {id:'docs',   name:'Отвезти документы', pay:[15000,25000], fatigue:6, req:{}, limit:3},
+  {id:'sell',   name:'Продать ненужное', pay:[15000,30000], fatigue:2, req:{}, limit:1},
+  {id:'repair', name:'Помочь с ремонтом', pay:[25000,40000], fatigue:14, req:{}, limit:2},
+  {id:'tutor',  name:'Репетиторство', pay:[30000,55000], fatigue:8, req:{comm:1}, limit:3},
+  {id:'freelance', name:'Фриланс-заказ', pay:[45000,90000], fatigue:10, req:{digital:2}, limit:2},
+  {id:'shop_helper', name:'Помочь в магазине', pay:[20000,30000], fatigue:10, req:{}, limit:3},
+  {id:'photo',  name:'Фотосъёмка', pay:[40000,80000], fatigue:12, req:{digital:1, comm:1}, limit:1},
+  {id:'translate', name:'Перевод документов', pay:[30000,50000], fatigue:6, req:{comm:2}, limit:2},
+  {id:'sewing_order', name:'Заказ на пошив', pay:[25000,50000], fatigue:8, req:{prof:2}, limit:2},
+  {id:'repair_pipe', name:'Сантехника', pay:[30000,60000], fatigue:12, req:{prof:2}, limit:2},
+  {id:'taxi',   name:'Смена в такси', pay:[7000,30000], fatigue:16, req:{car:true}, limit:20},
+];
+
+const INSTALLMENTS = [
+  {id:'tv', name:'Телевизор', price:tng(280000), months:12, comfort:+3},
+  {id:'fridge', name:'Холодильник', price:tng(350000), months:12, comfort:+4},
+  {id:'sofa', name:'Диван', price:tng(450000), months:18, comfort:+6},
+  {id:'phone', name:'Смартфон', price:tng(400000), months:12, comfort:+2},
+  {id:'washer', name:'Стиральная машина', price:tng(300000), months:12, comfort:+4},
+];
+
+/* ================= СОБЫТИЯ ================= */
+const EVENT_TEMPLATES = [
+  {id:'wedding', w:6, cond:s=>s.month>=1, build:s=>{
+    const n = randName('m');
+    return {title:'Свадьба друга', text:`${n} пригласил на свадьбу.`,
+      options:[
+        {label:'Подарить 50 000 ₸', effect:s=>{E.money(s,-tng(50000),'Свадьба'); E.social(s,+10);}},
+        {label:'Подарок 20 000 ₸', effect:s=>{E.money(s,-tng(20000),'Свадьба'); E.social(s,+5);}},
+        {label:'Отказаться', effect:s=>{E.social(s,-6);}},
+      ]};
+  }},
+  {id:'car_break', w:5, cond:s=>s.car!=null, build:s=>({
+    title:'Поломка авто', text:'Машина не завелась.',
+    options:[
+      {label:'Ремонт (80 000 ₸)', effect:s=>{E.money(s,-tng(80000),'Ремонт авто');}},
+      {label:'Минимально (35 000 ₸)', effect:s=>{E.money(s,-tng(35000),'Ремонт авто'); E.comfort(s,-2);}},
+    ]})},
+  {id:'premium', w:5, cond:s=>s.job!=null, build:s=>({
+    title:'Премия', text:'Руководитель отметил работу.',
+    options:[{label:'Получить', effect:s=>{const p = Math.round(s.job.salary*0.2); E.money(s,p,'Премия');}}]})},
+  {id:'help_parents', w:5, cond:s=>s.month>=3, build:s=>({
+    title:'Помощь родителям', text:'Мама попросила на лечение.',
+    options:[
+      {label:'Помочь (60 000 ₸)', effect:s=>{E.money(s,-tng(60000),'Помощь'); E.social(s,+8);}},
+      {label:'Частично (25 000 ₸)', effect:s=>{E.money(s,-tng(25000),'Помощь'); E.social(s,+3);}},
+    ]})},
+  {id:'birthday', w:6, build:s=>({
+    title:'День рождения', text:'Семья собирается.',
+    options:[
+      {label:'Подарок 30 000 ₸', effect:s=>{E.money(s,-tng(30000),'Подарок'); E.social(s,+6);}},
+      {label:'Подарок 15 000 ₸', effect:s=>{E.money(s,-tng(15000),'Подарок'); E.social(s,+2);}},
+    ]})},
+  {id:'medical', w:3, build:s=>({
+    title:'Медицина', text:'Заболел зуб.',
+    options:[
+      {label:'Частная (75 000 ₸)', effect:s=>{E.money(s,-tng(75000),'Медицина');}},
+      {label:'Городская (20 000 ₸)', effect:s=>{E.money(s,-tng(20000),'Медицина'); E.stress(s,+8);}},
+    ]})},
+  {id:'promo', w:3, cond:s=>s.job && s.jobTenure>=4, build:s=>({
+    title:'Повышение', text:'Руководство предлагает повышение.',
+    options:[
+      {label:'Согласиться', effect:s=>{s.job = {...s.job, salary: Math.round(s.job.salary*1.2)}; s.jobTenure = 0; s.stress = clamp(s.stress+8,0,100);}},
+      {label:'Остаться', effect:s=>{E.stress(s,-3);}},
+    ]})},
+  {id:'child_birth', w:4, cond:s=>s.spouse && s.children.length<3, build:s=>({
+    title:'Рождение ребёнка', text:`У вас родился ребёнок!`,
+    options:[
+      {label:'Скромно (80 000 ₸)', effect:s=>{E.money(s,-tng(80000),'Рождение'); E.social(s,+8); s.children.push({name:randName(Math.random()<.5?'m':'f'), birthYear:s.year}); s.monthlyChildCost=(s.monthlyChildCost||0)+tng(60000);}},
+      {label:'Праздник (300 000 ₸)', effect:s=>{E.money(s,-tng(300000),'Рождение'); E.social(s,+15); s.children.push({name:randName(Math.random()<.5?'m':'f'), birthYear:s.year}); s.monthlyChildCost=(s.monthlyChildCost||0)+tng(60000);}},
+    ]})},
+  {id:'spouse_gift', w:4, cond:s=>s.spouse, build:s=>({
+    title:'Подарок супругу', text:'Намекает на подарок.',
+    options:[
+      {label:'Купить (80 000 ₸)', effect:s=>{E.money(s,-tng(80000),'Подарок'); E.social(s,+10); E.stress(s,-5);}},
+      {label:'Скромный (25 000 ₸)', effect:s=>{E.money(s,-tng(25000),'Подарок'); E.social(s,+5);}},
+    ]})},
+  {id:'raise_auto', w:3, cond:s=>s.job && s.jobTenure>=8, build:s=>({
+    title:'Пересмотр', text:'Компания проводит пересмотр окладов.',
+    options:[{label:'Принять +8%', effect:s=>{s.job={...s.job, salary: Math.round(s.job.salary*1.08)};}}]})},
+  {id:'utility_jump', w:4, build:s=>({
+    title:'Коммунальные', text:'Большая квитанция.',
+    options:[
+      {label:'Оплатить (35 000 ₸)', effect:s=>{E.money(s,-tng(35000),'Коммунальные');}},
+      {label:'Частично (15 000 ₸)', effect:s=>{E.money(s,-tng(15000),'Коммунальные'); E.stress(s,+5);}},
+    ]})},
+  {id:'tax', w:3, cond:s=>s.year>2025, build:s=>({
+    title:'Налог', text:'Уведомление.',
+    options:[{label:'Оплатить (30 000 ₸)', effect:s=>{E.money(s,-tng(30000),'Налог');}}]})},
+  {id:'sale', w:3, build:s=>({
+    title:'Распродажа', text:'Скидки.',
+    options:[
+      {label:'Купить (40 000 ₸)', effect:s=>{E.money(s,-tng(40000),'Покупка'); E.comfort(s,+4);}},
+      {label:'Пропустить', effect:s=>{}},
+    ]})},
+];
+
+/* ================= СЦЕНАРИИ ================= */
+const SCENARIOS = {
+  normal: {name:'Стандарт', rooms:2, sqm:55, pricePerSqm:tng(700000), downPct:20, years:20, rate:18, startSalary:tng(450000), savings:tng(150000), living:tng(175000)},
+  small:  {name:'Небольшая', rooms:1, sqm:38, pricePerSqm:tng(600000), downPct:20, years:15, rate:17, startSalary:tng(380000), savings:tng(200000), living:tng(150000)},
+  luxury: {name:'Просторная', rooms:3, sqm:85, pricePerSqm:tng(750000), downPct:25, years:20, rate:19, startSalary:tng(600000), savings:tng(120000), living:tng(230000)},
+};
+const DIFFICULTY = {
+  calm:    {name:'Спокойная жизнь', incomeMul:1.1, expenseMul:.85, eventRisk:.7},
+  realistic:{name:'Реалистичная', incomeMul:1, expenseMul:1, eventRisk:1},
+  challenge:{name:'Финансовый вызов', incomeMul:.9, expenseMul:1.2, eventRisk:1.4},
+};
+
+/* ================= СОЗДАНИЕ ================= */
+function newState(opts){
+  const {scenarioId, difficultyId, playerName, spouseName, spouseWorks, spouseSalary, mode,
+         customPrice, customDown, customRate, customYears, startCredits} = opts;
+  const sc = SCENARIOS[scenarioId] || SCENARIOS.normal;
+  const diff = DIFFICULTY[difficultyId] || DIFFICULTY.realistic;
+  const price = customPrice || (sc.sqm * sc.pricePerSqm);
+  const down = customDown || Math.round(price * sc.downPct/100);
+  const loan = price - down;
+  const rate = customRate || sc.rate;
+  const years = customYears || sc.years;
+  const monthly = Fin.annuity(loan, rate, years*12);
+
+  let spouse = null;
+  if (spouseName){
+    spouse = {
+      name: spouseName,
+      gender: Math.random()<.5?'f':'m',
+      salary: spouseWorks ? tng(spouseSalary) : 0,
+      works: spouseWorks
+    };
+  }
+
+  const credits = [{id:'mortgage', name:'Ипотека', balance:loan, rate, monthsLeft:years*12, monthly, initialMonths:years*12, initialAmount:loan, totalExtra:0}];
+  if (startCredits && startCredits.length){
+    startCredits.forEach(c => {
+      const m = Fin.annuity(c.amount, c.rate, c.months);
+      credits.push({id:uid(), name:c.name, balance:c.amount, rate:c.rate, monthsLeft:c.months, monthly:m, initialMonths:c.months, initialAmount:c.amount, totalExtra:0});
+    });
+  }
+
+  return {
+    v:4, mode: mode || 'life',
+    scenario:scenarioId, difficulty:difficultyId,
+    playerName: playerName || 'Игрок',
+    year:2025, month:1, day:1,
+    cash: sc.savings - (startCredits? startCredits.reduce((a,c)=>a+c.amount,0)*0: 0), savings: 0, deposit: 0,
+    energy:80, stress:30, social:60, comfort:40,
+    skills:{comm:1, anal:1, digital:1, mgmt:0, prof:1},
+    job: {...CAREERS[0], salary: Math.round(sc.startSalary*diff.incomeMul)},
+    jobTenure: 0,
+    careerSearch: null,
+    courses: [],
+    credits,
+    realEstate:[{id:'apt', name:`${sc.rooms}-комн. квартира`, value:price, comfort:40, rented:false}],
+    installments: [],
+    car: null,
+    spouse, children: [], pets: 0,
+    spouseHealth: 100, monthlyChildCost: 0,
+    pregnant: false, pregnancyMonth: 0,
+    tx: [], eventsHistory: [], activeEvent: null, monthClosed: false,
+    flags:{}, totalInterestPaid:0, inflation: 0.006,
+    livingCostBase: Math.round(sc.living * diff.expenseMul),
+    marketSalaryIndex: 1.0,
+    subjobsUsed: {},
+    jobsBoard: [],
+    firedStreak: 0,
+    overdueMonths: 0,
+    creditHistoryDamaged: false,
+    lastRefinanceOffer: 0,
+    refinanceCooldown: 18,
+    goal: {id:'mortgage', name:'Погасить ипотеку'},
+    story: { stage:'meet', partnerName: null, flags:{} },
+    achievements: []
+  };
+}
+
+/* ================= ЭКОНОМИКА ================= */
+const E = {
+  money(s, delta, reason, cat='Прочее'){
+    s.cash += delta;
+    s.tx.push({date:s.year*12+s.month, cat, reason, amount:delta});
+    if (s.cash < 0) s.flags.overdraft = true;
+  },
+  energy(s, d){ s.energy = clamp(s.energy+d, 0, 100); },
+  stress(s, d){ s.stress = clamp(s.stress+d, 0, 100); },
+  social(s, d){ s.social = clamp(s.social+d, 0, 100); },
+  comfort(s, d){ s.comfort = clamp(s.comfort+d, 0, 100); },
+  takeCredit(s, amount, ratePct, months, name){
+    const monthly = Fin.annuity(amount, ratePct, months);
+    s.credits.push({id:uid(), name, balance:amount, rate:ratePct, monthsLeft:months, monthly, initialMonths:months, initialAmount:amount, totalExtra:0});
+    E.money(s, amount, 'Кредит: '+name, 'Кредит');
+  },
+  payCreditMonthly(s, cr){
+    if (cr.balance <= 0) return;
+    const payment = Math.min(cr.monthly, cr.balance + Fin.monthInterest(cr.balance, cr.rate));
+    const res = Fin.applyPayment(cr.balance, cr.rate, payment);
+    cr.balance = res.newBalance;
+    cr.monthsLeft = Math.max(0, cr.monthsLeft-1);
+    E.money(s, -payment, 'Платёж: '+cr.name, 'Кредит');
+    if (cr.balance <= 0){ cr.closed = true; toast('Кредит закрыт: '+cr.name); }
+  }
+};
+
+/* ================= МЕСЯЦ ================= */
+function startNextMonth(s){
+  s.monthClosed = false;
+  s.month += 1;
+  if (s.month > 12){ s.month = 1; s.year += 1; }
+  s.day = 1;
+  s.energy = clamp(s.energy+20, 0, 100);
+  s.stress = clamp(s.stress-6, 0, 100);
+  s.social = clamp(s.social-2, 0, 100);
+  s.jobTenure = (s.jobTenure||0) + 1;
+  s.livingCostBase = Math.round(s.livingCostBase * (1 + s.inflation));
+  s.subjobsUsed = {};
+  s.marketSalaryIndex = Math.min(2.5, s.marketSalaryIndex * 1.005);
+
+  // Курсы
+  s.courses = s.courses.map(c => ({...c, weeksLeft: c.weeksLeft-4}));
+  s.courses.forEach(c=>{
+    if (c.weeksLeft<=0){
+      Object.entries(c.effect).forEach(([k,v])=>{ s.skills[k]=(s.skills[k]||0)+v; });
+      toast('Курс завершён: '+c.name);
+    }
+  });
+  s.courses = s.courses.filter(c=>c.weeksLeft>0);
+
+  // Поиск работы (1-3 дня, проверяем при каждом закрытии месяца)
+  if (s.careerSearch){
+    s.careerSearch.waited = (s.careerSearch.waited||0)+1;
+    if (s.careerSearch.waited >= (s.careerSearch.waitDays||2)){
+      const chance = 0.55 + 0.05*Object.values(s.skills).reduce((a,b)=>a+b,0);
+      if (Math.random() < chance){
+        toast('Приняли: '+s.careerSearch.vacancy.name);
+        s.pendingJobOffer = s.careerSearch.vacancy;
+      } else toast('Отказ');
+      s.careerSearch = null;
+    }
+  }
+
+  // Доход
+  if (s.job){
+    s.cash += s.job.salary;
+    s.tx.push({date:s.year*12+s.month, cat:'Доход', reason:'Зарплата', amount:s.job.salary});
+  }
+  if (s.spouse && s.spouse.works){
+    s.cash += s.spouse.salary;
+    s.tx.push({date:s.year*12+s.month, cat:'Доход', reason:'Зарплата супруга', amount:s.spouse.salary});
+  }
+
+  // Рассрочки
+  s.installments.forEach(inst=>{
+    if (inst.monthsLeft > 0){
+      s.cash -= inst.monthly;
+      s.tx.push({date:s.year*12+s.month, cat:'Рассрочка', reason:inst.name, amount:-inst.monthly});
+      inst.monthsLeft--;
+      if (inst.monthsLeft === 0){ inst.closed = true; toast('Рассрочка: '+inst.name); }
+    }
+  });
+  s.installments = s.installments.filter(i=>!i.closed);
+
+  // Расходы
+  const expenses = computeMonthlyExpenses(s);
+  Object.values(expenses).forEach(e=>{
+    if (e.amount > 0){
+      s.cash -= e.amount;
+      s.tx.push({date:s.year*12+s.month, cat:e.cat, reason:e.reason, amount:-e.amount});
+    }
+  });
+
+  // Проценты
+  if (s.deposit > 0){ s.deposit += Math.round(s.deposit * 0.14 / 12); }
+  if (s.savings > 0){ s.savings += Math.round(s.savings * 0.12 / 12); }
+
+  // Кредиты
+  s.credits.forEach(cr=>E.payCreditMonthly(s, cr));
+  s.credits = s.credits.filter(c=>c.balance>0);
+
+  // Просрочка
+  if (s.cash < 0){
+    s.overdueMonths = (s.overdueMonths||0) + 1;
+    const penalty = Math.round(Math.abs(s.cash) * 0.05);
+    s.cash -= penalty;
+    s.tx.push({date:s.year*12+s.month, cat:'Штраф', reason:'Пени за просрочку', amount:-penalty});
+    s.stress = clamp(s.stress+15,0,100);
+    if (s.overdueMonths >= 2) toast('Просрочка! Кредитная история портится');
+    if (s.overdueMonths >= 3){
+      s.creditHistoryDamaged = true;
+      toast('Кредитная история испорчена. Все кредиты дороже');
+    }
+    if (s.overdueMonths >= 4 && s.car){
+      toast('Банк изъял автомобиль за долги');
+      s.car = null;
+    }
+  } else {
+    s.overdueMonths = Math.max(0, (s.overdueMonths||0) - 1);
+  }
+
+  // Увольнение
+  if (s.job && (s.stress > 85 || s.energy < 15)){
+    s.firedStreak = (s.firedStreak||0) + 1;
+    if (s.firedStreak >= 2){
+      toast('Вас уволили из-за выгорания');
+      s.job = null; s.firedStreak = 0; s.flags.fired = true;
+    }
+  } else s.firedStreak = 0;
+
+  // Индексация
+  if (s.month === 1 && s.job){
+    const idx = rnd(1.05, 1.10);
+    s.job = {...s.job, salary: Math.round(s.job.salary*idx)};
+  }
+
+  // Беременность
+  if (s.pregnant){
+    s.pregnancyMonth = (s.pregnancyMonth||0) + 1;
+    if (s.pregnancyMonth >= 9){
+      s.pregnant = false; s.pregnancyMonth = 0;
+      s.children.push({name:randName(Math.random()<.5?'m':'f'), birthYear:s.year});
+      s.monthlyChildCost = (s.monthlyChildCost||0) + tng(60000);
+      toast('Родился ребёнок!');
+    }
+  }
+
+  refreshJobsBoard(s);
+  rollEvent(s);
+  checkAchievements(s);
+  save(s);
+}
+
+function computeMonthlyExpenses(s){
+  const base = s.livingCostBase;
+  const childCost = (s.monthlyChildCost || 0);
+  return {
+    food:      {cat:'Бытовые', reason:'Продукты',  amount: Math.round(base*0.42) + Math.round(childCost*0.3)},
+    utilities: {cat:'Бытовые', reason:'Коммунальные', amount: Math.round(base*0.22) + Math.round(childCost*0.15)},
+    transport: {cat:'Бытовые', reason:'Транспорт', amount: Math.round(base*0.16)},
+    internet:  {cat:'Бытовые', reason:'Связь', amount: Math.round(base*0.08)},
+    misc:      {cat:'Бытовые', reason:'Прочие', amount: Math.round(base*0.12)},
+    children:  childCost ? {cat:'Семья', reason:'Дети', amount: childCost} : {amount:0},
+    car:       s.car ? {cat:'Транспорт', reason:'Содержание авто', amount: Math.round(s.car.maintenance)} : {amount:0},
+  };
+}
+
+/* ================= ВАКАНСИИ ================= */
+function refreshJobsBoard(s){
+  const baseSalary = s.job ? s.job.salary : tng(450000);
+  const marketMin = Math.round(baseSalary * 0.85 * s.marketSalaryIndex);
+  const marketMax = Math.round(baseSalary * 1.35 * s.marketSalaryIndex);
+  const list = [];
+  if (s.flags.fired || s.overdueMonths >= 2 || s.creditHistoryDamaged){
+    shuffle(LOW_JOBS).slice(0,4).forEach(cr=>{
+      list.push({id:uid(), careerId:cr.id, name:cr.name, salary: Math.round(rndInt(marketMin*0.4, marketMax*0.55)), req:cr.req});
+    });
+  } else {
+    shuffle(CAREERS).slice(0,5).forEach(cr=>{
+      list.push({id:uid(), careerId:cr.id, name:cr.name, salary: rndInt(marketMin, marketMax), req:cr.req});
+    });
+    shuffle(LOW_JOBS).slice(0,1).forEach(cr=>{
+      list.push({id:uid(), careerId:cr.id, name:cr.name, salary: rndInt(marketMin*0.4, marketMax*0.55), req:cr.req});
+    });
+  }
+  s.jobsBoard = list;
+}
+
+/* ================= СОБЫТИЯ ================= */
+function rollEvent(s){
+  if (s.mode === 'story'){ s.activeEvent = null; return; }
+  if (Math.random() > 0.75 * DIFFICULTY[s.difficulty].eventRisk){ s.activeEvent = null; return; }
+  const candidates = [];
+  EVENT_TEMPLATES.forEach(t=>{
+    if (t.cond && !t.cond(s)) return;
+    const recent = s.eventsHistory.filter(e=>e.id===t.id && (s.year*12+s.month)-e.month < 4).length;
+    if (recent >= 1) return;
+    candidates.push(t);
+  });
+  if (!candidates.length){ s.activeEvent = null; return; }
+  const totalW = candidates.reduce((a,c)=>a+(c.w||1),0);
+  let r = Math.random()*totalW;
+  let chosen = candidates[0];
+  for (const c of candidates){ r -= (c.w||1); if (r <= 0){ chosen = c; break; } }
+  s.activeEvent = {id:chosen.id, data: chosen.build(s)};
+  s.eventsHistory.push({id:chosen.id, month: s.year*12+s.month});
+}
+
+function checkAchievements(s){
+  const push = (name) => { if (!s.achievements.find(a=>a.name===name)) s.achievements.push({name, date:s.year+'/'+s.month}); };
+  if (s.savings + s.deposit >= tng(1000000)) push('Первый миллион');
+  if (s.children.length >= 1) push('Родитель');
+  if (s.spouse) push('Семьянин');
+  if (s.car) push('Автовладелец');
+}
+
+/* ================= СОХРАНЕНИЕ ================= */
+const SAVE_KEY = 'life_on_credit_v4';
+function save(s){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(s)); }catch(e){} }
+function load(){ try{ const raw = localStorage.getItem(SAVE_KEY); if (raw) return JSON.parse(raw); }catch(e){} return null; }
+
+/* ================= UI ================= */
+let S = null;
+let currentScreen = 'home';
+function el(html){ const d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstElementChild; }
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('on'), 2400);
+}
+function openModal(content){
+  document.getElementById('modal').innerHTML = '';
+  document.getElementById('modal').append(content);
+  document.getElementById('modalWrap').classList.add('on');
+}
+function closeModal(){ document.getElementById('modalWrap').classList.remove('on'); }
+
+function renderAll(){ renderStatusBar(); renderNav(); renderScreen(currentScreen); }
+
+function renderNav(){
+  const items = [
+    {id:'home', ico:'🏠', label:'Главная'},
+    {id:'work', ico:'💼', label:'Работа'},
+    {id:'finance', ico:'₸', label:'Финансы'},
+    {id:'life', ico:'🌿', label:'Жизнь'},
+    {id:'property', ico:'🏘', label:'Имущество'},
+  ];
+  const nav = document.getElementById('nav');
+  nav.innerHTML = items.map(i=>`<div class="item ${currentScreen===i.id?'on':''}" data-nav="${i.id}"><span class="ico">${i.ico}</span>${i.label}</div>`).join('');
+  nav.querySelectorAll('[data-nav]').forEach(x=>x.onclick = ()=>{ currentScreen = x.dataset.nav; renderAll(); });
+}
+
+function renderStatusBar(){
+  const host = document.getElementById('statusBarHost');
+  if (!S){ host.innerHTML = ''; return; }
+  const s = S;
+  const eC = s.energy<30?'var(--red)':s.energy<60?'#f59e0b':'var(--green)';
+  const sC = s.stress>70?'var(--red)':s.stress>40?'#f59e0b':'var(--green)';
+  const soC = s.social<30?'var(--red)':s.social<60?'#f59e0b':'var(--green)';
+  const cC = s.comfort<30?'var(--red)':s.comfort<60?'#f59e0b':'var(--green)';
+  host.innerHTML = `<div class="status-bar">
+    <div class="row" style="margin-bottom:8px;font-size:12px">
+      <span class="muted">${monthName(s.month)} ${s.year} · ${escape(s.playerName)}</span>
+      <span class="num" style="font-weight:800">${fmt(s.cash)}</span>
+    </div>
+    <div class="row">
+      <div class="mini-stat"><span>⚡</span><span class="v">${s.energy}</span><div class="mini-bar"><i style="width:${s.energy}%;background:${eC}"></i></div></div>
+      <div class="mini-stat"><span>😰</span><span class="v">${s.stress}</span><div class="mini-bar"><i style="width:${s.stress}%;background:${sC}"></i></div></div>
+      <div class="mini-stat"><span>👥</span><span class="v">${s.social}</span><div class="mini-bar"><i style="width:${s.social}%;background:${soC}"></i></div></div>
+      <div class="mini-stat"><span>🏠</span><span class="v">${s.comfort}</span><div class="mini-bar"><i style="width:${s.comfort}%;background:${cC}"></i></div></div>
+    </div>
+  </div>`;
+}
+
+function go(screen){ currentScreen = screen; renderAll(); }
+
+function renderScreen(id){
+  const root = document.getElementById('screens');
+  root.innerHTML = '';
+  const node = screens[id]();
+  node.classList.add('screen','active');
+  root.append(node);
+  renderActionBar();
+}
+
+function renderActionBar(){
+  const host = document.getElementById('actionBarHost');
+  if (!S){ host.innerHTML = ''; return; }
+  if (currentScreen !== 'home' && currentScreen !== 'finance'){ host.innerHTML = ''; return; }
+  const s = S;
+  const closed = s.monthClosed;
+  const income = (s.job?s.job.salary:0) + (s.spouse && s.spouse.works?s.spouse.salary:0);
+  host.innerHTML = `<div class="action-bar">
+    <button class="green" ${closed?'disabled':''} onclick="openMonthClose()">
+      ${closed ? '⏳ Месяц закрыт' : '📅 Закрыть месяц · +'+fmt(income)+' зарплата'}
+    </button>
+    <div class="sub">${closed ? 'Откройте следующий месяц' : 'Следующий месяц'}</div>
+  </div>`;
+}
+
+/* ================= ЭКРАНЫ ================= */
+const screens = {};
+
+screens.home = function(){
+  if (!S) return startScreen();
+  const s = S;
+  const mortgage = s.credits.find(c=>c.id==='mortgage');
+  const expenses = computeMonthlyExpenses(s);
+  const totalExp = Object.values(expenses).reduce((a,e)=>a+e.amount,0) + s.credits.reduce((a,c)=>a+c.monthly,0) + s.installments.reduce((a,i)=>a+i.monthly,0);
+  const income = (s.job?s.job.salary:0) + (s.spouse && s.spouse.works?s.spouse.salary:0);
+  const freeFlow = income - totalExp;
+  const pct = mortgage ? 1 - mortgage.balance/mortgage.initialAmount : 1;
+  const recent = s.tx.slice(-5).reverse();
+
+  const c = el(`<div></div>`);
+  c.innerHTML = `
+    <div class="row" style="margin-bottom:10px">
+      <div>
+        <div class="muted">${monthName(s.month)} ${s.year}</div>
+        <div class="big num">${fmt(s.cash)}</div>
+      </div>
+      <div style="text-align:right">
+        <span class="pill ${freeFlow>=0?'g':'r'}">${freeFlow>=0?'+':''}${fmt(freeFlow)}/мес</span>
+        ${s.overdueMonths>0?`<div class="pill r" style="margin-top:4px">⚠ Просрочка ${s.overdueMonths}</div>`:''}
+      </div>
+    </div>
+    ${s.spouse?`<div class="muted" style="margin-bottom:10px">${escape(s.spouse.name)} · ${s.spouse.works?fmt(s.spouse.salary):'не работает'}</div>`:''}
+
+    ${mortgage?`
+    <div class="card">
+      <div class="row"><h3>Ипотека</h3><span class="pill">${Math.round(pct*100)}%</span></div>
+      <div class="big red num">${fmt(mortgage.balance)}</div>
+      <div class="muted">${fmt(mortgage.monthly)}/мес · осталось ${mortgage.monthsLeft} мес.</div>
+      <div class="progress" style="margin-top:10px"><i style="width:${Math.min(100,pct*100)}%"></i></div>
+    </div>`:''}
+
+    <div class="grid2">
+      <div class="chip"><div class="muted">Доход</div><div class="v green num">${fmt(income)}</div></div>
+      <div class="chip"><div class="muted">Расходы</div><div class="v red num">${fmt(totalExp)}</div></div>
+      <div class="chip"><div class="muted">Накопления</div><div class="v num">${fmt(s.savings + s.deposit)}</div></div>
+      <div class="chip"><div class="muted">Поток</div><div class="v ${freeFlow>=0?'green':'red'} num">${fmt(freeFlow)}</div></div>
+    </div>
+
+    ${s.activeEvent?`
+    <div class="card">
+      <div class="row"><h3>Событие</h3><span class="pill r">!</span></div>
+      <div class="event-hero">
+        <b>${escape(s.activeEvent.data.title)}</b>
+        <div class="muted" style="margin-top:4px">${escape(s.activeEvent.data.text)}</div>
+      </div>
+      <button onclick="openActiveEvent()">Открыть</button>
+    </div>`:''}
+
+    <div class="card">
+      <div class="row"><h3>Операции</h3><button class="ghost" style="padding:6px 12px;font-size:12px" onclick="openHistory()">За 3 месяца</button></div>
+      ${recent.map(tx=>`<div class="list-item"><div><div style="font-weight:600">${escape(tx.reason)}</div><div class="muted">${catName(tx.cat)}</div></div><div class="num ${tx.amount>=0?'green':'red'}" style="font-weight:700">${tx.amount>=0?'+':''}${fmt(tx.amount)}</div></div>`).join('') || '<div class="muted">Пусто</div>'}
+    </div>
+  `;
+  return c;
+};
+
+screens.work = function(){
+  const s = S;
+  const c = el(`<div></div>`);
+  c.innerHTML = `
+    <h1>Работа</h1>
+    <div class="card">
+      <div class="row"><h3>${s.job?escape(s.job.name):'Без работы'}</h3>${s.job?`<span class="pill g">${fmt(s.job.salary)}</span>`:`<span class="pill r">!</span>`}</div>
+      <div class="muted">Стаж: ${s.jobTenure} мес.</div>
+      <div class="divider"></div>
+      ${Object.entries(s.skills).map(([k,v])=>`<div class="kv"><span>${skillName(k)}</span><span class="num" style="font-weight:700">${v}</span></div>`).join('')}
+      <div class="btn-row" style="margin-top:12px">
+        <button class="gray" onclick="go('courses')">Обучение</button>
+        <button class="gray" onclick="go('jobs')">Вакансии</button>
+        <button class="ghost" onclick="openSubjobs()">Подработки</button>
+      </div>
+    </div>
+    ${s.flags.fired?`<div class="card" style="border-left:4px solid var(--red)"><b>Вас уволили</b><div class="muted">Доступны только низкооплачиваемые вакансии.</div></div>`:''}
+  `;
+  return c;
+};
+
+screens.finance = function(){
+  const s = S;
+  const mort = s.credits.find(c=>c.id==='mortgage');
+  const others = s.credits.filter(c=>c!==mort);
+  const c = el(`<div></div>`);
+  c.innerHTML = `
+    <h1>Финансы</h1>
+    <div class="card">
+      <h3>Баланс</h3>
+      <div class="big num">${fmt(s.cash)}</div>
+      <div class="muted">Накопления: ${fmt(s.savings)} · Депозит: ${fmt(s.deposit)}</div>
+      <div class="btn-row" style="margin-top:12px">
+        <button class="ghost" onclick="openMoveToSavings()">На накопления</button>
+        <button class="ghost" onclick="openDeposit()">Пополнить депозит</button>
+      </div>
+    </div>
+    ${mort?`
+    <div class="card">
+      <div class="row"><h3>Ипотека</h3><span class="pill">${mort.rate}%</span></div>
+      <div class="kv"><span>Остаток</span><span class="num red" style="font-weight:700">${fmt(mort.balance)}</span></div>
+      <div class="kv"><span>Платёж</span><span class="num">${fmt(mort.monthly)}</span></div>
+      <div class="kv"><span>Осталось</span><span class="num">${mort.monthsLeft} мес.</span></div>
+      <div class="kv"><span>Переплата</span><span class="num">${fmt(Fin.totalInterestForecast(mort.balance, mort.rate, mort.monthsLeft, mort.monthly))}</span></div>
+      <div class="btn-row" style="margin-top:12px">
+        <button onclick="openPrepay()">Досрочка</button>
+        <button class="ghost" onclick="openSchedule()">График</button>
+      </div>
+    </div>`:''}
+    ${others.length?`<div class="card"><h3>Кредиты</h3>${others.map(cr=>`<div class="kv"><span>${escape(cr.name)}</span><span class="num">${fmt(cr.balance)} · ${fmt(cr.monthly)}</span></div>`).join('')}</div>`:''}
+    <div class="card"><h3>Банк</h3><div class="btn-row"><button onclick="openBank()">Предложения</button></div></div>
+    <div class="card"><h3>История</h3><button onclick="openHistory()">За 3 месяца</button></div>
+  `;
+  return c;
+};
+
+screens.life = function(){
+  const s = S;
+  const c = el(`<div></div>`);
+  const bar = (label, v, color)=>`<div class="goal"><div class="top"><span>${label}</span><span>${v}/100</span></div><div class="progress"><i style="background:${color};width:${v}%"></i></div></div>`;
+  c.innerHTML = `
+    <h1>Жизнь</h1>
+    <div class="card">
+      <h3>Состояние</h3>
+      ${bar('Энергия', s.energy, '#2563eb')}
+      ${bar('Стресс', s.stress, '#dc2626')}
+      ${bar('Социальные', s.social, '#059669')}
+      ${bar('Комфорт', s.comfort, '#8b5cf6')}
+      <div class="btn-row" style="margin-top:12px">
+        <button class="ghost" onclick="lifeRest()">Отдохнуть</button>
+        <button class="ghost" onclick="lifeFriends()">С друзьями</button>
+        <button class="ghost" onclick="openVacation()">Отпуск</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Семья</h3>
+      ${s.spouse?`
+        <div class="kv"><span>Супруг(а)</span><span style="font-weight:600">${escape(s.spouse.name)}</span></div>
+        <div class="kv"><span>Работает</span><span>${s.spouse.works?fmt(s.spouse.salary):'нет'}</span></div>
+      `:'<div class="muted">Нет супруга</div>'}
+      ${s.children.length?`<div class="kv"><span>Дети</span><span>${s.children.map(c=>c.name.split(' ')[0]).join(', ')}</span></div>`:''}
+      ${s.pregnant?`<div class="kv"><span>Беременность</span><span>${s.pregnancyMonth}/9 мес.</span></div>`:''}
+      <div class="btn-row" style="margin-top:10px">
+        ${s.spouse && s.children.length<4?`<button onclick="planChild()">${s.pregnant?'Идёт беременность':'Запланировать ребёнка'}</button>`:''}
+      </div>
+    </div>
+    <div class="card">
+      <h3>Достижения</h3>
+      ${(s.achievements||[]).length? (s.achievements.map(a=>`<div class="kv"><span>${escape(a.name)}</span><span class="muted">${a.date||''}</span></div>`).join('')) : '<div class="muted">Пока нет</div>'}
+    </div>
+  `;
+  return c;
+};
+
+screens.property = function(){
+  const s = S;
+  const c = el(`<div></div>`);
+  c.innerHTML = `
+    <h1>Имущество</h1>
+    ${s.realEstate.map(re=>`
+      <div class="card">
+        <div class="row"><h3>${escape(re.name)}</h3><span class="pill">${fmt(re.value)}</span></div>
+        <div class="muted">Комфорт ${re.comfort}/100</div>
+        <div class="progress" style="margin-top:8px"><i style="width:${re.comfort}%"></i></div>
+      </div>
+    `).join('')}
+    ${s.car?`<div class="card"><div class="row"><h3>${escape(s.car.name)}</h3><span class="pill">${fmt(s.car.value)}</span></div><div class="muted">${fmt(s.car.maintenance)}/мес</div></div>`:''}
+    ${s.installments.length?`<div class="card"><h3>Рассрочки</h3>${s.installments.map(i=>`<div class="kv"><span>${escape(i.name)}</span><span class="num">${fmt(i.monthly)} · ${i.monthsLeft} мес.</span></div>`).join('')}</div>`:''}
+    <div class="card">
+      <h3>Купить / улучшить</h3>
+      <div class="btn-row">
+        <button class="ghost" onclick="openRepair()">Ремонт</button>
+        <button class="ghost" onclick="openCarBuy()">Авто</button>
+        <button class="ghost" onclick="openInstallment()">Рассрочка</button>
+      </div>
+    </div>
+  `;
+  return c;
+};
+
+screens.courses = function(){
+  const s = S;
+  const c = el(`<div></div>`);
+  c.innerHTML = `
+    <h1>Обучение</h1>
+    <button class="ghost" onclick="go('work')">← Назад</button>
+    ${COURSES.map(cr=>{
+      const active = s.courses.find(x=>x.id===cr.id);
+      return `<div class="card">
+        <div class="row"><h3>${cr.name}</h3><span class="pill">${cr.weeks} нед.</span></div>
+        <div class="muted">${Object.entries(cr.effect).map(([k,v])=>`${skillName(k)} +${v}`).join(', ')}</div>
+        <div class="kv"><span>Стоимость</span><span class="num">${fmt(cr.cost)}</span></div>
+        ${active?`<button class="gray" style="width:100%;margin-top:8px" disabled>Учится (${active.weeksLeft} нед.)</button>`:`<button style="width:100%;margin-top:8px" onclick="startCourse('${cr.id}')">Записаться</button>`}
+      </div>`;
+    }).join('')}
+  `;
+  return c;
+};
+
+screens.jobs = function(){
+  const s = S;
+  const c = el(`<div></div>`);
+  c.innerHTML = `
+    <h1>Вакансии</h1>
+    <button class="ghost" onclick="go('work')">← Назад</button>
+    ${s.careerSearch?`<div class="card"><b>Ожидание ответа</b><div class="muted">${escape(s.careerSearch.vacancy.name)} · ответ через ${s.careerSearch.waitDays||2} дн.</div></div>`:''}
+    ${s.pendingJobOffer?`<div class="card" style="border:2px solid var(--green)">
+      <b>Приглашение!</b><div class="muted">${escape(s.pendingJobOffer.name)} — ${fmt(s.pendingJobOffer.salary)}</div>
+      <div class="btn-row" style="margin-top:10px"><button class="green" onclick="acceptOffer()">Принять</button><button class="gray" onclick="declineOffer()">Отказаться</button></div>
+    </div>`:''}
+    ${s.jobsBoard.map(v=>{
+      const ok = Object.entries(v.req).every(([k,val])=>k==='car'?!!s.car:(s.skills[k]||0)>=val);
+      return `<div class="card">
+        <div class="row"><h3>${v.name}</h3><span class="pill ${ok?'g':'r'}">${fmt(v.salary)}</span></div>
+        <div class="muted">${Object.entries(v.req).map(([k,val])=>`${k==='car'?'авто':skillName(k)} ${k==='car'?'':val}`).join(', ')||'без требований'}</div>
+        <button style="width:100%;margin-top:10px" ${!ok||s.careerSearch?'disabled':''} onclick="applyJob('${v.id}')">${!ok?'Мало навыков':s.careerSearch?'Идёт поиск':'Откликнуться'}</button>
+      </div>`;
+    }).join('')}
+  `;
+  return c;
+};
+
+/* ================= СТАРТ ================= */
+function startScreen(){
+  const c = el(`<div></div>`);
+  c.innerHTML = `
+    <h1>Жизнь в рассрочку</h1>
+    <div class="card">
+      <div class="event-hero">
+        <b>Поздравляем! Вы стали владельцем жилья.</b>
+        <div class="muted" style="margin-top:6px">Но вместе с ключами вы получили обязательство на годы вперёд.</div>
+      </div>
+      <div class="field"><label class="muted">Ваше имя</label><input type="text" id="playerName" value="Алексей" maxlength="30"/></div>
+      <div class="field"><label class="muted">Имя супруга(и)</label><input type="text" id="spouseName" value="" maxlength="30" placeholder="оставьте пустым"/></div>
+      <div class="field"><label class="muted">Супруг(а) работает?</label><select id="spouseWorks"><option value="yes">Да</option><option value="no">Нет</option></select></div>
+      <div class="field"><label class="muted">Зарплата супруга (₸)</label><input type="number" id="spouseSalary" value="350000"/></div>
+
+      <div class="section-title">Параметры квартиры</div>
+      <div class="field"><label class="muted">Комнат</label><select id="roomsSel"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option></select></div>
+      <div class="field"><label class="muted">Площадь (м²)</label><input type="number" id="sqmInput" value="55"/></div>
+      <div class="field"><label class="muted">Цена за м² (₸)</label><input type="number" id="pricePerSqmInput" value="700000"/></div>
+      <div class="field"><label class="muted">Первоначальный взнос (₸)</label><input type="number" id="downInput" value="7000000"/></div>
+      <div class="field"><label class="muted">Ставка (%)</label><input type="number" id="rateInput" value="18"/></div>
+      <div class="field"><label class="muted">Срок (лет)</label><input type="number" id="yearsInput" value="20"/></div>
+
+      <div class="section-title">Доп. кредиты (необязательно)</div>
+      <div id="startCreditsList"></div>
+      <button class="ghost" style="width:100%;margin-bottom:10px" onclick="addStartCredit()">+ Добавить кредит</button>
+
+      <div class="field"><label class="muted">Сложность</label>
+        <select id="diffSel">${Object.entries(DIFFICULTY).map(([k,v])=>`<option value="${k}">${v.name}</option>`).join('')}</select>
+      </div>
+      <div class="btn-row">
+        <button class="green" onclick="startNew()">Начать</button>
+        <button class="ghost" onclick="startRandom()">Случайный</button>
+      </div>
+      ${load()?`<div class="btn-row" style="margin-top:8px"><button class="ghost" onclick="continueGame()">Продолжить</button></div>`:''}
+    </div>
+  `;
+  return c;
+}
+
+let tempStartCredits = [];
+function addStartCredit(){
+  const list = document.getElementById('startCreditsList');
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.style.padding = '10px';
+  div.innerHTML = `
+    <div class="field"><label class="muted">Название</label><input type="text" class="cname" value="Потребительский" style="padding:8px"/></div>
+    <div class="field"><label class="muted">Сумма (₸)</label><input type="number" class="camount" value="300000" style="padding:8px"/></div>
+    <div class="field"><label class="muted">Ставка (%)</label><input type="number" class="crate" value="24" style="padding:8px"/></div>
+    <div class="field"><label class="muted">Срок (мес)</label><input type="number" class="cmonths" value="24" style="padding:8px"/></div>
+  `;
+  list.append(div);
+}
+
+function startNew(){
+  const playerName = document.getElementById('playerName').value.trim() || 'Игрок';
+  const spouseName = document.getElementById('spouseName').value.trim();
+  const spouseWorks = document.getElementById('spouseWorks').value === 'yes';
+  const spouseSalary = Number(document.getElementById('spouseSalary').value) || 350000;
+  const diffId = document.getElementById('diffSel').value;
+
+  const rooms = Number(document.getElementById('roomsSel').value);
+  const sqm = Number(document.getElementById('sqmInput').value);
+  const pricePerSqm = Number(document.getElementById('pricePerSqmInput').value);
+  const price = sqm * pricePerSqm;
+  const down = Number(document.getElementById('downInput').value);
+  const rate = Number(document.getElementById('rateInput').value);
+  const years = Number(document.getElementById('yearsInput').value);
+
+  const creditsEls = document.querySelectorAll('#startCreditsList .card');
+  const startCredits = Array.from(creditsEls).map(el => ({
+    name: el.querySelector('.cname').value,
+    amount: tng(Number(el.querySelector('.camount').value)),
+    rate: Number(el.querySelector('.crate').value),
+    months: Number(el.querySelector('.cmonths').value),
+  })).filter(c => c.amount > 0);
+
+  S = newState({
+    scenarioId:'normal', difficultyId:diffId, playerName, spouseName, spouseWorks, spouseSalary,
+    mode:'life', customPrice:tng(price), customDown:tng(down), customRate:rate, customYears:years,
+    startCredits
+  });
+  refreshJobsBoard(S);
+  save(S);
+  showMortgageIntro();
+}
+
+function startRandom(){
+  const gender = Math.random()<.5?'f':'m';
+  const playerName = randName(gender);
+  const spouseName = Math.random()<.6 ? randName(gender==='f'?'m':'f') : '';
+  const spouseWorks = Math.random()<.7;
+  const spouseSalary = rndInt(200000, 600000);
+  const diffId = pick(Object.keys(DIFFICULTY));
+  const rooms = rndInt(1,3);
+  const sqm = rooms * rndInt(28, 40);
+  const pricePerSqm = rndInt(500000, 800000);
+  S = newState({
+    scenarioId:'normal', difficultyId:diffId, playerName, spouseName, spouseWorks, spouseSalary,
+    mode:'life', customPrice:tng(sqm*pricePerSqm), customDown:tng(sqm*pricePerSqm*0.2),
+    customRate:rndInt(15,20), customYears:rndInt(15,25), startCredits:[]
+  });
+  refreshJobsBoard(S); save(S); showMortgageIntro();
+}
+
+function continueGame(){
+  const s = load(); if (!s) return;
+  S = s;
+  if (!S.jobsBoard || !S.jobsBoard.length) refreshJobsBoard(S);
+  currentScreen = 'home'; renderAll();
+}
+
+function showMortgageIntro(){
+  const s = S;
+  const m = s.credits[0];
+  const totalInterest = Fin.totalInterestForecast(m.balance, m.rate, m.monthsLeft, m.monthly);
+  const modal = el(`<div></div>`);
+  modal.innerHTML = `
+    <h2>Ваша ипотека</h2>
+    <div class="muted">${escape(s.playerName)}</div>
+    <div class="divider"></div>
+    <div class="kv"><span>Стоимость</span><span class="num">${fmt(s.realEstate[0].value)}</span></div>
+    <div class="kv"><span>Первый взнос</span><span class="num">${fmt(s.realEstate[0].value - m.initialAmount)}</span></div>
+    <div class="kv"><span>Сумма кредита</span><span class="num">${fmt(m.initialAmount)}</span></div>
+    <div class="kv"><span>Ставка</span><span class="num">${m.rate}%</span></div>
+    <div class="kv"><span>Срок</span><span class="num">${m.initialMonths/12} лет</span></div>
+    <div class="kv"><span>Платёж</span><span class="num">${fmt(m.monthly)}</span></div>
+    <div class="kv"><span>Переплата</span><span class="num">${fmt(totalInterest)}</span></div>
+    ${s.spouse?`<div class="kv"><span>Супруг(а)</span><span>${escape(s.spouse.name)} · ${s.spouse.works?fmt(s.spouse.salary):'не работает'}</span></div>`:''}
+    <div class="btn-row" style="margin-top:12px"><button class="green" onclick="closeModal(); afterIntro()">Начать</button></div>
+  `;
+  openModal(modal);
+}
+
+function afterIntro(){
+  const gift = tng(200000);
+  S.cash += gift;
+  S.tx.push({date:S.year*12+S.month, cat:'Доход', reason:'Подарок на новоселье', amount:gift});
+  save(S); renderAll();
+  const modal = el(`<div></div>`);
+  modal.innerHTML = `
+    <h2>Подарок</h2>
+    <div class="muted">Родственники подарили ${fmt(gift)}. Что с ними сделать?</div>
+    <div class="btn-row" style="margin-top:12px;flex-direction:column">
+      <button onclick="giftChoice('prepay')">Досрочка</button>
+      <button class="gray" onclick="giftChoice('repair')">Ремонт 80 000 ₸</button>
+      <button class="gray" onclick="giftChoice('furniture')">Мебель 100 000 ₸</button>
+      <button class="ghost" onclick="giftChoice('save')">На накопления</button>
+    </div>
+  `;
+  openModal(modal);
+}
+
+function giftChoice(kind){
+  const s = S; const mort = s.credits[0];
+  if (kind === 'prepay'){
+    const extra = Math.min(tng(200000), mort.balance);
+    s.cash -= extra; s.credits[0] = Fin.prepay(mort, extra, 'term');
+    s.tx.push({date:s.year*12+s.month, cat:'Кредит', reason:'Досрочка', amount:-extra});
+  } else if (kind === 'repair'){
+    s.cash -= tng(80000); s.comfort = clamp(s.comfort+15,0,100);
+    s.tx.push({date:s.year*12+s.month, cat:'Имущество', reason:'Ремонт', amount:-tng(80000)});
+  } else if (kind === 'furniture'){
+    s.cash -= tng(100000); s.comfort = clamp(s.comfort+10,0,100); s.social = clamp(s.social+5,0,100);
+    s.tx.push({date:s.year*12+s.month, cat:'Имущество', reason:'Мебель', amount:-tng(100000)});
+  } else if (kind === 'save'){
+    s.savings += tng(200000); s.cash -= tng(200000);
+  }
+  save(S); closeModal(); renderAll();
+}
+
+/* ================= МЕСЯЦ ================= */
+function openMonthClose(){
+  if (!S || S.monthClosed) return;
+  const s = S;
+  const expenses = computeMonthlyExpenses(s);
+  const totalExp = Object.values(expenses).reduce((a,e)=>a+e.amount,0);
+  const income = (s.job?s.job.salary:0) + (s.spouse && s.spouse.works?s.spouse.salary:0);
+  const creditsPay = s.credits.reduce((a,c)=>a+c.monthly,0) + s.installments.reduce((a,i)=>a+i.monthly,0);
+  const flow = income - totalExp - creditsPay;
+  const modal = el(`<div></div>`);
+  modal.innerHTML = `
+    <h2>Закрытие месяца</h2>
+    <div class="muted">${monthName(s.month)} ${s.year}</div>
+    <div class="divider"></div>
+    ${s.job?`<div class="monthly-row"><span>Зарплата</span><span class="v green" style="font-weight:700">+${fmt(s.job.salary)}</span></div>`:''}
+    ${s.spouse && s.spouse.works?`<div class="monthly-row"><span>Зарплата супруга</span><span class="v green" style="font-weight:700">+${fmt(s.spouse.salary)}</span></div>`:''}
+    <div class="monthly-row"><span>Продукты</span><span class="v red">−${fmt(expenses.food.amount)}</span></div>
+    <div class="monthly-row"><span>Коммунальные</span><span class="v red">−${fmt(expenses.utilities.amount)}</span></div>
+    <div class="monthly-row"><span>Транспорт</span><span class="v red">−${fmt(expenses.transport.amount)}</span></div>
+    <div class="monthly-row"><span>Связь</span><span class="v red">−${fmt(expenses.internet.amount)}</span></div>
+    <div class="monthly-row"><span>Прочие</span><span class="v red">−${fmt(expenses.misc.amount)}</span></div>
+    ${expenses.children.amount?`<div class="monthly-row"><span>Дети</span><span class="v red">−${fmt(expenses.children.amount)}</span></div>`:''}
+    ${expenses.car.amount?`<div class="monthly-row"><span>Авто</span><span class="v red">−${fmt(expenses.car.amount)}</span></div>`:''}
+    ${s.credits.map(cr=>`<div class="monthly-row"><span>${escape(cr.name)}</span><span class="v red">−${fmt(cr.monthly)}</span></div>`).join('')}
+    ${s.installments.map(i=>`<div class="monthly-row"><span>${escape(i.name)}</span><span class="v red">−${fmt(i.monthly)}</span></div>`).join('')}
+    <div class="divider"></div>
+    <div class="monthly-row"><b>Итог</b><span class="v ${flow>=0?'green':'red'}" style="font-weight:800">${flow>=0?'+':'−'}${fmt(Math.abs(flow))}</span></div>
+    <button class="green" style="width:100%;margin-top:12px" onclick="confirmMonth()">Подтвердить</button>
+    <button class="ghost" style="width:100%;margin-top:8px" onclick="closeModal()">Отмена</button>
+  `;
+  openModal(modal);
+}
+
+function confirmMonth(){
+  if (!S || S.monthClosed) return;
+  S.monthClosed = true;
+  save(S); closeModal();
+  startNextMonth(S);
+  renderAll();
+  if (S.activeEvent) setTimeout(()=>openActiveEvent(), 200);
+}
+
+/* ================= СОБЫТИЯ ================= */
+function openActiveEvent(){
+  const s = S;
+  if (!s.activeEvent) return;
+  const ev = s.activeEvent.data;
+  const modal = el(`<div></div>`);
+  modal.innerHTML = `
+    <h2>${escape(ev.title)}</h2>
+    <div class="muted">${escape(ev.text)}</div>
+    <div class="divider"></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${ev.options.map((o,i)=>`<button onclick="chooseEventOption(${i})">${escape(o.label)}</button>`).join('')}
+    </div>
+  `;
+  openModal(modal);
+}
+
+function chooseEventOption(idx){
+  const s = S;
+  if (!s.activeEvent) return;
+  const ev = s.activeEvent.data;
+  const opt = ev.options[idx];
+  closeModal();
+  opt.effect(s);
+  s.activeEvent = null;
+  save(S); renderAll();
+}
+
+/* ================= ДОСРОЧКА ================= */
+function openPrepay(){
+  const s = S;
+  const mort = s.credits.find(c=>c.id==='mortgage'); if (!mort) return;
+  const maxExtra = Math.min(s.cash, mort.balance);
+  const modal = el(`<div></div>`);
+  modal.innerHTML = `
+    <h2>Досрочное погашение</h2>
+    <div class="muted">Доступно: ${fmt(s.cash)}</div>
+    <div class="field"><label class="muted">Сумма (₸)</label><input type="number" id="prepaySum" value="${Math.round(maxExtra/T)}"/></div>
+    <div class="field"><label class="muted">Стратегия</label>
+      <select id="prepayStrategy"><option value="term">Сократить срок</option><option value="payment">Уменьшить платёж</option></select>
+    </div>
+    <button class="green" style="width:100%" onclick="doPrepay()">Внести</button>
+    <button class="ghost" style="width:100%;margin-top:8px" onclick="closeModal()">Отмена</button>
+  `;
+  openModal(modal);
+}
+
+function doPrepay(){
+  const s = S;
+  const mort = s.credits.find(c=>c.id==='mortgage'); if (!mort) return;
+  const amt = Math.max(0, Math.min(mort.balance, tng(Number(document.getElementById('prepaySum').value)||0)));
+  const strat = document.getElementById('prepayStrategy').value;
+  if (amt <= 0 || amt > s.cash){ toast('Некорректно'); return; }
+  s.cash -= amt;
+  s.credits[s.credits.indexOf(mort)] = Fin.prepay(mort, amt, strat);
+  s.tx.push({date:s.year*12+s.month, cat:'Кредит', reason:'Досрочка', amount:-amt});
+  closeModal(); save(S); renderAll(); toast('Досрочка выполнена');
+}
+
+function openSchedule(){
+  const s = S;
+  const mort = s.credits.find(c=>c.id==='mortgage'); if (!mort) return;
+  let bal = mort.balance; let rows = []; let totalInt = 0; let i = 0;
+  while (bal > 0 && i < mort.monthsLeft+1){
+    const interest = Fin.monthInterest(bal, mort.rate);
+    const principal = Math.min(bal, mort.monthly - interest);
+    bal -= principal; totalInt += interest;
+    rows.push({i:i+1, interest, principal, bal});
+    i++; if (principal <= 0) break;
+  }
+  const modal = el(`<div></div>`);
+  modal.innerHTML = `
+    <h2>График</h2>
+    <div class="muted">Переплата: ${fmt(totalInt)}</div>
+    <div style="max-height:300px;overflow:auto;margin-top:10px">
+      <table style="border-collapse:collapse;width:100%;font-size:12px">
+        <tr><th>№</th><th>%</th><th>Долг</th><th>Остаток</th></tr>
+        ${rows.slice(0,60).map(r=>`<tr><td>${r.i}</td><td>${fmt0(r.interest)}</td><td>${fmt0(r.principal)}</td><td>${fmt0(r.bal)}</td></tr>`).join('')}
+      </table>
+    </div>
+    <button class="ghost" style="width:100%;margin-top:12px" onclick="closeModal()">Закрыть</button>
+  `;
+  openModal(modal);
+}
+
+/* ================= БАНК ================= */
+function openBank(){
+  const s = S;
+  const mort = s.credits.find(c=>c.id==='mortgage');
+  const monthsSince = (s.year*12+s.month) - (s.lastRefinanceOffer || 0);
+  const canOffer = mort && s.jobTenure>=6 && !s.creditHistoryDamaged && monthsSince >= s.refinanceCooldown && Math.random() < 0.3;
+
+  const modal = el(`<div></div>`);
+  let ref = '<div class="muted">Сейчас нет персональных предложений. Банк рассматривает только надёжных клиентов.</div>';
+  if (canOffer){
+    s.lastRefinanceOffer = s.year*12+s.month;
+    const newRate = Math.max(mort.rate-2.5, 12);
+    const newMonthly = Fin.annuity(mort.balance, newRate, mort.monthsLeft);
+    const fee = tng(150000);
+    ref = `<div class="card" style="box-shadow:none;background:#f8fafc">
+      <div class="kv"><span>Ставка</span><span class="num">${mort.rate}% → ${newRate}%</span></div>
+      <div class="kv"><span>Платёж</span><span class="num">${fmt(mort.monthly)} → ${fmt(newMonthly)}</span></div>
+      <div class="kv"><span>Комиссия</span><span class="num">${fmt(fee)}</span></div>
+      <button style="width:100%;margin-top:10px" onclick="doRefinance(${newRate},${newMonthly},${fee})">Рефинансировать</button>
+    </div>`;
+    save(S);
+  }
+  modal.innerHTML = `<h2>Банк</h2><h3>Рефинансирование</h3>${ref}<div class="divider"></div><h3>Депозит</h3><button style="width:100%" onclick="openDeposit()">Открыть/пополнить</button><button class="ghost" style="width:100%;margin-top:8px" onclick="closeModal()">Закрыть</button>`;
+  openModal(modal);
+}
+
+function doRefinance(newRate, newMonthly, fee){
+  const s = S;
+  if (s.cash < fee){ toast('Нужно '+fmt(fee)); return; }
+  const mort = s.credits.find(c=>c.id==='mortgage'); if (!mort) return;
+  mort.rate = newRate; mort.monthly = newMonthly;
+  s.cash -= fee;
+  save(S); closeModal(); renderAll(); toast('Рефинансирование оформлено');
+}
+
+function openDeposit(){
+  const s = S;
+  const modal = el(`<div></div>`);
+  modal.innerHTML = `<h2>Депозит</h2><div class="muted">Накопления: ${fmt(s.savings)} · Депозит: ${fmt(s.deposit)}</div><div class="field"><label class="muted">Сумма</label><input type="number" id="depSum" value="${Math.round(Math.min(s.savings, tng(200000))/T)}"/></div><button class="green" style="width:100%" onclick="doDeposit()">Пополнить</button><button class="ghost" style="width:100%;margin-top:8px" onclick="closeModal()">Отмена</button>`;
+  openModal(modal);
+}
+function doDeposit(){
+  const s = S;
+  const amt = Math.max(0, tng(Number(document.getElementById('depSum').value)||0));
+  if (amt <= 0 || amt > s.savings){ toast('Мало средств'); return; }
+  s.savings -= amt; s.deposit += amt;
+  s.tx.push({date:s.year*12+s.month, cat:'Банк', reason:'Пополнение депозита', amount:-amt});
+  closeModal(); save(S); renderAll(); toast('Пополнено');
+}
+function openMoveToSavings(){
+  const s = S;
+  const modal = el(`<div></div>`);
+  modal.innerHTML = `<h2>На накопления</h2><div class="muted">Доступно: ${fmt(s.cash)}</div><div class="field"><label class="muted">Сумма</label><input type="number" id="saveSum" value="${Math.round(s.cash/T/2)}"/></div><button class="green" style="width:100%" onclick="doMoveToSavings()">Перевести</button><button class="ghost" style="width:100%;margin-top:8px" onclick="closeModal()">Отмена</button>`;
+  openModal(modal);
+}
+function doMoveToSavings(){
+  const s = S;
+  const amt = Math.max(0, tng(Number(document.getElementById('saveSum').value)||0));
+  if (amt <= 0 || amt > s.cash){ toast('Мало'); return; }
+  s.cash -= amt; s.savings += amt;
+  s.tx.push({date:s.year*12+s.month, cat:'Накопления', reason:'Перевод', amount:-amt});
+  closeModal(); save(S); renderAll(); toast('OK');
+}
+
+/* ================= ПОДРАБОТКИ ================= */
+function openSubjobs(){
+  const s = S;
+  const modal = el(`<div></div>`);
+  const available = SUBJOBS.filter(j=>{
+    if (j.req.car && !s.car) return false;
+    return Object.entries(j.req).every(([k,v])=>k==='car'?true:(s.skills[k]||0)>=v);
+  });
+  modal.innerHTML = `<h2>Подработки</h2><div class="muted">Энергия: ${s.energy}/100</div><div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">${available.map(j=>{
+    const used = s.subjobsUsed[j.id]||0;
+    const can = used < (j.limit||1) && s.energy >= 10;
+    const range = `${fmt(j.pay[0])}–${fmt(j.pay[1])}`;
+    return `<button ${!can?'class="gray" disabled':`onclick="doSubjob('${j.id}')"`}>${escape(j.name)} · ${range} · ${used}/${j.limit||1}</button>`;
+  }).join('')}</div><button class="ghost" style="width:100%;margin-top:12px" onclick="closeModal()">Закрыть</button>`;
+  openModal(modal);
+}
+function doSubjob(id){
+  const s = S;
+  const j = SUBJOBS.find(x=>x.id===id); if (!j) return;
+  if (s.energy < 10){ toast('Устали'); return; }
+  const used = s.subjobsUsed[j.id]||0;
+  if (used >= (j.limit||1)){ toast('Лимит'); return; }
+  let pay = rndInt(j.pay[0], j.pay[1]);
+  if (j.id === 'taxi'){
+    const day = s.day;
+    const mul = day===5||day===6 ? rnd(1.2, 1.5) : rnd(0.9, 1.2);
+    pay = Math.round(pay * mul);
+  }
+  E.money(s, pay, 'Подработка: '+j.name, 'Доход');
+  E.energy(s, -j.fatigue);
+  s.subjobsUsed[j.id] = used + 1;
+  toast('+'+fmt(pay));
+  closeModal(); save(S); renderAll();
+}
+
+/* ================= ОБУЧЕНИЕ ================= */
+function startCourse(id){
+  const s = S;
+  const cr = COURSES.find(x=>x.id===id); if (!cr) return;
+  if (s.cash < cr.cost){ toast('Мало денег'); return; }
+  s.cash -= cr.cost;
+  s.courses.push({...cr, weeksLeft: cr.weeks});
+  s.tx.push({date:s.year*12+s.month, cat:'Обучение', reason:'Курс: '+cr.name, amount:-cr.cost});
+  save(S); renderAll(); toast('Записано');
+}
+
+/* ================= РАБОТА ================= */
+function applyJob(vacancyId){
+  const s = S;
+  const v = s.jobsBoard.find(x=>x.id===vacancyId); if (!v) return;
+  s.careerSearch = {vacancy:v, waited:0, waitDays: rndInt(1,3)};
+  save(S); renderAll(); toast('Отклик отправлен. Ответ через 1-3 дня');
+}
+function acceptOffer(){
+  const s = S;
+  if (!s.pendingJobOffer) return;
+  s.job = {id:s.pendingJobOffer.careerId||'custom', name:s.pendingJobOffer.name, salary:s.pendingJobOffer.salary};
+  s.jobTenure = 0; s.pendingJobOffer = null; s.flags.fired = false;
+  save(S); renderAll(); toast('Новая работа');
+}
+function declineOffer(){ S.pendingJobOffer = null; save(S); renderAll(); }
+
+/* ================= ЖИЗНЬ ================= */
+function lifeRest(){ E.energy(S,+20); E.stress(S,-10); save(S); renderAll(); toast('Отдых'); }
+function lifeFriends(){
+  const s = S; const cost = tng(12000);
+  if (s.cash < cost){ toast('Мало'); return; }
+  s.cash -= cost;
+  s.tx.push({date:s.year*12+s.month, cat:'Развлечения', reason:'С друзьями', amount:-cost});
+  E.social(s,+10); E.stress(s,-5);
+  save(S); renderAll(); toast('OK');
+}
+function openVacation(){
+  const s = S;
+  const modal = el(`<div></div>`);
+  const opts = [
+    {name:'Дача на выходные', cost:tng(40000), stress:-10, social:+3},
+    {name:'Турция, 7 дней', cost:tng(400000), stress:-25, social:+8},
+    {name:'Дальнее зарубежье, 10 дней', cost:tng(900000), stress:-35, social:+12},
+  ];
+  modal.innerHTML = `<h2>Отпуск</h2><div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">${opts.map((o,i)=>`<button onclick="doVacation(${i})">${o.name} · ${fmt(o.cost)}</button>`).join('')}</div><button class="ghost" style="width:100%;margin-top:12px" onclick="closeModal()">Закрыть</button>`;
+  openModal(modal);
+  window._vacOpts = opts;
+}
+function doVacation(i){
+  const s = S;
+  const o = window._vacOpts[i];
+  if (s.cash < o.cost){ toast('Мало'); return; }
+  E.money(s, -o.cost, 'Отпуск', 'Развлечения');
+  E.stress(s, o.stress); E.social(s, o.social);
+  closeModal(); save(S); renderAll(); toast('Отпуск!');
+}
+
+function planChild(){
+  const s = S;
+  if (s.pregnant){ toast('Уже беременны'); return; }
+  if (s.stress > 70){ toast('Высокий стресс'); return; }
+  if (s.energy < 40){ toast('Устали'); return; }
+  if (Math.random() < 0.6){ s.pregnant = true; s.pregnancyMonth = 0; toast('Беременность'); }
+  else toast('Пока не получилось');
+  save(S); renderAll();
+}
+
+/* ================= ИМУЩЕСТВО ================= */
+function openRepair(){
+  const modal = el(`<div></div>`);
+  modal.innerHTML = `<h2>Ремонт</h2><div style="display:flex;flex-direction:column;gap:8px;margin-top:12px"><button onclick="doRepair(50000,5)">Косметический · 50 000 ₸</button><button onclick="doRepair(200000,15)">Качественный · 200 000 ₸</button><button onclick="doRepair(500000,25)">Полный · 500 000 ₸</button><button class="ghost" onclick="closeModal()">Закрыть</button></div>`;
+  openModal(modal);
+}
+function doRepair(cost, bonus){
+  const s = S; const amt = tng(cost);
+  if (s.cash < amt){ toast('Мало'); return; }
+  s.cash -= amt;
+  s.comfort = clamp(s.comfort+bonus,0,100);
+  s.realEstate[0].comfort = s.comfort;
+  s.tx.push({date:s.year*12+s.month, cat:'Имущество', reason:'Ремонт', amount:-amt});
+  closeModal(); save(S); renderAll(); toast('OK');
+}
+
+function openCarBuy(){
+  const s = S;
+  const modal = el(`<div></div>`);
+  const cars = [
+    {name:'Старый бюджетный', price:tng(2500000), maint:tng(40000)},
+    {name:'Подержанный средний', price:tng(6000000), maint:tng(60000)},
+    {name:'Новый', price:tng(12000000), maint:tng(80000)},
+  ];
+  modal.innerHTML = `<h2>Автомобиль</h2><div class="muted">Доступно: ${fmt(s.cash)}</div><div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">${cars.map((c,idx)=>`<div style="border:1.5px solid var(--line);border-radius:14px;padding:12px"><div class="row"><b>${c.name}</b><span class="num">${fmt(c.price)}</span></div><div class="muted">${fmt(c.maint)}/мес</div><div class="btn-row" style="margin-top:8px"><button onclick="doBuyCar(${idx},false,0)">Наличными</button><button class="ghost" onclick="openCarCredit(${idx})">В кредит</button></div></div>`).join('')}</div><button class="ghost" style="width:100%;margin-top:12px" onclick="closeModal()">Закрыть</button>`;
+  openModal(modal);
+  window._cars = cars;
+}
+function openCarCredit(idx){
+  const cars = window._cars;
+  const c = cars[idx];
+  const modal = el(`<div></div>`);
+  modal.innerHTML = `<h2>Автокредит</h2><div class="muted">${c.name} · ${fmt(c.price)}</div><div class="field" style="margin-top:12px"><label class="muted">Срок</label><select id="carTerm"><option value="12">12 мес (18%)</option><option value="24">24 мес (17%)</option><option value="36" selected>36 мес (15%)</option><option value="60">60 мес (16%)</option></select></div><div class="muted">Первый взнос 20%</div><button class="green" style="width:100%;margin-top:12px" onclick="doBuyCar(${idx},true,Number(document.getElementById('carTerm').value))">Оформить</button><button class="ghost" style="width:100%;margin-top:8px" onclick="closeModal()">Отмена</button>`;
+  openModal(modal);
+}
+function doBuyCar(idx, credit, term){
+  const s = S;
+  const c = window._cars[idx];
+  if (!c) return;
+  if (credit){
+    const down = Math.round(c.price*0.2);
+    if (s.cash < down){ toast('Нужно '+fmt(down)); return; }
+    const rate = term===12?18:term===24?17:term===36?15:16;
+    const loan = c.price - down;
+    const monthly = Fin.annuity(loan, rate, term);
+    s.cash -= down;
+    s.credits.push({id:uid(), name:'Автокредит: '+c.name, balance:loan, rate, monthsLeft:term, monthly, initialMonths:term, initialAmount:loan, totalExtra:0});
+    s.car = {name:c.name, value:c.price, maintenance:c.maint};
+    s.tx.push({date:s.year*12+s.month, cat:'Имущество', reason:'Взнос за авто', amount:-down});
+  } else {
+    if (s.cash < c.price){ toast('Мало'); return; }
+    s.cash -= c.price;
+    s.car = {name:c.name, value:c.price, maintenance:c.maint};
+    s.tx.push({date:s.year*12+s.month, cat:'Имущество', reason:'Покупка авто', amount:-c.price});
+  }
+  closeModal(); save(S); renderAll(); toast('Авто куплено');
+}
+
+function openInstallment(){
+  const s = S;
+  const modal = el(`<div></div>`);
+  modal.innerHTML = `<h2>Рассрочка</h2><div class="muted">0% на срок, но фиксированный платёж каждый месяц.</div><div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">${INSTALLMENTS.map((i,idx)=>`<button onclick="doInstallment(${idx})">${i.name} · ${fmt(i.price)} · ${i.months} мес.</button>`).join('')}</div><button class="ghost" style="width:100%;margin-top:12px" onclick="closeModal()">Закрыть</button>`;
+  openModal(modal);
+}
+function doInstallment(idx){
+  const s = S;
+  const i = INSTALLMENTS[idx];
+  const monthly = Math.round(i.price / i.months);
+  s.installments.push({name:i.name, monthly, monthsLeft:i.months, total:i.price});
+  s.comfort = clamp(s.comfort + i.comfort,0,100);
+  s.realEstate[0].comfort = s.comfort;
+  s.tx.push({date:s.year*12+s.month, cat:'Рассрочка', reason:'Оформлена: '+i.name, amount:0});
+  closeModal(); save(S); renderAll(); toast('Рассрочка оформлена');
+}
+
+/* ================= ИСТОРИЯ ================= */
+function openHistory(){
+  const s = S;
+  const cutoff = (s.year*12+s.month) - 3;
+  const list = s.tx.filter(t=>t.date >= cutoff);
+  const modal = el(`<div></div>`);
+  modal.innerHTML = `<h2>История за 3 месяца</h2><div style="max-height:400px;overflow:auto">${list.slice().reverse().map(tx=>`<div class="list-item"><div><div style="font-weight:600">${escape(tx.reason)}</div><div class="muted">${catName(tx.cat)}</div></div><div class="num ${tx.amount>=0?'green':'red'}" style="font-weight:700">${tx.amount>=0?'+':''}${fmt(tx.amount)}</div></div>`).join('') || '<div class="muted">Пусто</div>'}</div><button class="ghost" style="width:100%;margin-top:12px" onclick="closeModal()">Закрыть</button>`;
+  openModal(modal);
+}
+
+/* ================= ВСПОМОГАТЕЛЬНЫЕ ================= */
+const MONTHS_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+function monthName(m){ return MONTHS_RU[m-1] || ''; }
+function skillName(k){ return {comm:'Коммуникация', anal:'Аналитика', digital:'Цифровые', mgmt:'Управление', prof:'Профессия'}[k]||k; }
+function catName(c){ return {Доход:'Доход','Бытовые':'Бытовые','Кредит':'Кредит','Транспорт':'Транспорт','Обучение':'Обучение','Имущество':'Имущество','Банк':'Банк','Накопления':'Накопления','Развлечения':'Развлечения','Семья':'Семья','Медицина':'Медицина','Рассрочка':'Рассрочка','Штраф':'Штраф','Прочее':'Прочее'}[c]||c; }
+function escape(str){ return String(str).replace(/[&<>"']/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+
+/* ================= GLOBAL ================= */
+Object.assign(window, {
+  go, closeModal, openActiveEvent, chooseEventOption,
+  openMonthClose, confirmMonth,
+  openPrepay, doPrepay, openSchedule, openBank, doRefinance, openDeposit, doDeposit,
+  openMoveToSavings, doMoveToSavings, openSubjobs, doSubjob,
+  startCourse, applyJob, acceptOffer, declineOffer,
+  lifeRest, lifeFriends, openVacation, doVacation, planChild,
+  openRepair, doRepair, openCarBuy, openCarCredit, doBuyCar, openInstallment, doInstallment,
+  startNew, startRandom, continueGame, giftChoice, afterIntro, openHistory, addStartCredit
+});
+
+/* ================= INIT ================= */
+(function init(){
+  const existing = load();
+  if (existing){ S = existing; if (!S.jobsBoard || !S.jobsBoard.length) refreshJobsBoard(S); }
+  renderAll();
+  setInterval(()=>{ if (S) save(S); }, 30000);
+})();
+</script>
+</body>
+</html>
