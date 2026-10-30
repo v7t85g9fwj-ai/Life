@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>Жизнь в рассрочку</title>
+<style>
+  :root{
+    --bg:#f4f6f8; --card:#ffffff; --ink:#1c2530; --muted:#6b7a8c;
+    --green:#1f9d55; --green-bg:#e7f6ee; --red:#d64545; --red-bg:#fdeaea;
+    --blue:#2f6fed; --blue-bg:#eaf1ff; --line:#e3e8ee; --shadow:0 1px 2px rgba(20,30,50,.06),0 6px 20px rgba(20,30,50,.06);
+    --radius:16px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:15px;line-height:1.4}
+  #app{max-width:520px;margin:0 auto;min-height:100vh;background:var(--bg);padding-bottom:76px;position:relative}
+  .screen{display:none;padding:14px 14px 24px;animation:fade .18s ease}
+  .screen.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  h1,h2,h3{margin:0 0 8px}
+  h1{font-size:20px}
+  h2{font-size:17px}
+  h3{font-size:15px}
+  .card{background:var(--card);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:12px}
+  .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .muted{color:var(--muted);font-size:13px}
+  .big{font-size:26px;font-weight:700;letter-spacing:-.4px}
+  .num{font-variant-numeric:tabular-nums}
+  .green{color:var(--green)} .red{color:var(--red)} .blue{color:var(--blue)}
+  .pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:12px;background:var(--blue-bg);color:var(--blue)}
+  .pill.g{background:var(--green-bg);color:var(--green)} .pill.r{background:var(--red-bg);color:var(--red)}
+  button{cursor:pointer;font-family:inherit;font-size:15px;border:none;border-radius:12px;padding:11px 14px;background:var(--blue);color:#fff;font-weight:600;transition:transform .05s}
+  button:active{transform:scale(.98)}
+  button.ghost{background:transparent;color:var(--blue);border:1px solid var(--line)}
+  button.gray{background:#eef1f5;color:var(--ink)}
+  button.green{background:var(--green)}
+  button.red{background:var(--red)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap}
+  .btn-row button{flex:1 1 auto}
+  .progress{height:10px;background:#eef1f5;border-radius:999px;overflow:hidden}
+  .progress > i{display:block;height:100%;background:var(--green);border-radius:999px;transition:width .3s}
+  .spark{width:100%;height:70px;display:block}
+  .field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+  input[type=number],select{font-family:inherit;font-size:16px;padding:10px;border:1px solid var(--line);border-radius:10px;width:100%;background:#fff}
+  .tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+  .tabs .tab{padding:7px 12px;border-radius:999px;background:#eef1f5;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer}
+  .tabs .tab.on{background:var(--ink);color:#fff}
+  .list-item{display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .list-item:last-child{border-bottom:none}
+  .nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:flex;max-width:520px;margin:0 auto;z-index:10}
+  .nav .item{flex:1;text-align:center;padding:9px 2px 10px;font-size:11px;color:var(--muted);cursor:pointer;user-select:none}
+  .nav .item .ico{font-size:19px;display:block;line-height:1.1}
+  .nav .item.on{color:var(--blue);font-weight:700}
+  .modal-wrap{position:fixed;inset:0;background:rgba(16,24,36,.45);display:none;align-items:flex-end;justify-content:center;z-index:50;padding:0}
+  .modal-wrap.on{display:flex}
+  .modal{background:#fff;max-width:520px;width:100%;border-radius:18px 18px 0 0;padding:18px 16px 20px;max-height:90vh;overflow:auto;animation:up .2s ease}
+  @keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+  .modal h2{margin-bottom:6px}
+  .toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);background:#1c2530;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;z-index:80;opacity:0;transition:opacity .25s;max-width:90%;text-align:center}
+  .toast.on{opacity:1}
+  .kv{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line)}
+  .kv:last-child{border-bottom:none}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .chip{background:#f2f5f9;border-radius:12px;padding:10px}
+  .chip .v{font-size:18px;font-weight:700;margin-top:2px}
+  .badge{font-size:11px;padding:2px 7px;border-radius:8px;background:#eef1f5;color:var(--muted)}
+  .event-hero{background:linear-gradient(135deg,#eaf1ff,#f4f6f8);border-radius:14px;padding:14px;margin-bottom:10px}
+  .monthly-row{display:flex;justify-content:space-between;padding:4px 0}
+  .monthly-row .v{font-variant-numeric:tabular-nums}
+  .divider{height:1px;background:var(--line);margin:8px 0}
+  .goal{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+  .goal .top{display:flex;justify-content:space-between;font-size:13px}
+  .scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table.mini{border-collapse:collapse;width:100%;font-size:12px}
+  table.mini td,table.mini th{padding:5px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+  table.mini th:first-child,table.mini td:first-child{text-align:left}
+  .center{text-align:center}
+  .hint{font-size:12px;color:var(--muted);margin-top:6px}
+  .price-toggle{display:flex;gap:6px;margin-bottom:8px}
+  .price-toggle button{flex:1;padding:8px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="screens"></div>
+  <div class="nav" id="nav"></div>
+</div>
+<div class="modal-wrap" id="modalWrap"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   УТИЛИТЫ ДЕНЕГ: все суммы в ЦЕЛЫХ тиынах (1 ₸ = 100 тн)
+   ============================================================ */
+const T = 100;                    // тиынов в тенге
+const tng = v => Math.round(v * T);          // тенге -> тиыны
+const fmt = v => (v / T).toLocaleString('ru-RU', {maximumFractionDigits:0}) + ' ₸';
+const fmt0 = v => Math.round(v / T).toLocaleString('ru-RU');
+
+const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
+const rnd = (a,b)=>a+Math.random()*(b-a);
+const rndInt = (a,b)=>Math.floor(rnd(a,b+1));
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+const uid = () => Math.random().toString(36).slice(2,10);
+
+/* ============================================================
+   ФИНАНСОВЫЙ ДВИЖОК (единственный источник истины)
+   ============================================================ */
+const Fin = {
+  // A = P*r*(1+r)^n / ((1+r)^n - 1), r месячная, деньги в тиынах
+  annuity(P, yearlyPct, months){
+    if (months <= 0) return 0;
+    const r = yearlyPct/100/12;
+    if (r === 0) return Math.round(P / months);
+    const k = Math.pow(1+r, months);
+    return Math.round(P * r * k / (k - 1));
+  },
+  // Проценты за месяц
+  monthInterest(P, yearlyPct){ return Math.round(P * (yearlyPct/100/12)); },
+
+  // Применить платёж: возвращает {interest, principal, newBalance}
+  applyPayment(balance, yearlyPct, payment){
+    const interest = Math.min(this.monthInterest(balance, yearlyPct), payment);
+    let principal = payment - interest;
+    if (principal > balance){ principal = balance; }
+    const paid = interest + principal;
+    return { interest, principal, paid, newBalance: balance - principal };
+  },
+
+  // Досрочное погашение. strategy: 'term' (сократить срок) | 'payment' (уменьшить платёж)
+  prepay(loan, extra, strategy){
+    extra = Math.min(extra, loan.balance);
+    if (extra <= 0) return loan;
+    const nb = loan.balance - extra;
+    const beforeMonthly = loan.monthly;
+    const beforeMonths = loan.monthsLeft;
+    const beforeTotalInterest = this.totalInterestForecast(nb===0?0:loan.balance, loan.rate, loan.monthsLeft, loan.monthly);
+
+    if (nb === 0){
+      return {...loan, balance:0, monthsLeft:0, monthly:0, totalExtra: (loan.totalExtra||0)+extra};
+    }
+    if (strategy === 'term'){
+      // сохраняем платёж, пересчитываем срок
+      const r = loan.rate/100/12;
+      let months = loan.monthsLeft;
+      if (loan.monthly > this.monthInterest(nb, loan.rate)){
+        months = Math.ceil(Math.log(loan.monthly/(loan.monthly - nb*r))/Math.log(1+r));
+        if (!isFinite(months) || months <= 0) months = loan.monthsLeft;
+        months = Math.min(months, loan.monthsLeft);
+      }
+      return {...loan, balance: nb, monthsLeft: months, totalExtra:(loan.totalExtra||0)+extra};
+    } else {
+      // сохраняем срок, пересчитываем платёж
+      const monthly = this.annuity(nb, loan.rate, loan.monthsLeft);
+      return {...loan, balance: nb, monthly, totalExtra:(loan.totalExtra||0)+extra};
+    }
+  },
+
+  // Прогноз суммы процентов до закрытия (по текущему платежу)
+  totalInterestForecast(balance, yearlyPct, monthsLeft, monthly){
+    if (balance <= 0 || monthsLeft <= 0) return 0;
+    let bal = balance, interest = 0, guard = 0;
+    while (bal > 0 && guard++ < 2000){
+      const i = Math.min(this.monthInterest(bal, yearlyPct), monthly);
+      const p = Math.min(bal, monthly - i);
+      interest += i;
+      bal -= p;
+      if (p <= 0) break;
+    }
+    return interest;
+  }
+};
+
+/* ============================================================
+   КАТАЛОГИ: профессии, курсы, события, товары
+   ============================================================ */
+const CAREERS = [
+  {id:'office', name:'Офисный сотрудник', salary:tng(450000), req:{}, risks:0.02, growth:tng(30000)},
+  {id:'sales',  name:'Специалист по продажам', salary:tng(400000), req:{comm:1}, risks:0.05, growth:tng(45000)},
+  {id:'accountant', name:'Бухгалтер', salary:tng(420000), req:{anal:1}, risks:0.02, growth:tng(28000)},
+  {id:'analyst', name:'Аналитик', salary:tng(550000), req:{anal:2, digital:1}, risks:0.03, growth:tng(50000)},
+  {id:'it', name:'IT-специалист', salary:tng(700000), req:{digital:2, anal:1}, risks:0.03, growth:tng(80000)},
+  {id:'designer', name:'Дизайнер', salary:tng(480000), req:{digital:1, comm:1}, risks:0.06, growth:tng(40000)},
+  {id:'driver', name:'Водитель', salary:tng(320000), req:{}, risks:0.04, growth:tng(15000)},
+  {id:'logistics', name:'Специалист по логистике', salary:tng(460000), req:{anal:1, comm:1}, risks:0.03, growth:tng(35000)},
+  {id:'manager', name:'Менеджер', salary:tng(600000), req:{comm:2, mgmt:1}, risks:0.03, growth:tng(60000)},
+];
+
+const COURSES = [
+  {id:'excel', name:'Excel для аналитики', weeks:4, cost:tng(60000), effect:{anal:1}},
+  {id:'python', name:'Python: базовый курс', weeks:12, cost:tng(180000), effect:{digital:2, anal:1}},
+  {id:'design', name:'Дизайн-мышление', weeks:8, cost:tng(120000), effect:{digital:1, comm:1}},
+  {id:'sales', name:'Переговоры и продажи', weeks:6, cost:tng(90000), effect:{comm:2}},
+  {id:'mgmt', name:'Управление командой', weeks:10, cost:tng(160000), effect:{mgmt:2, comm:1}},
+];
+
+const SUBJOBS = [
+  {id:'move', name:'Помочь Серику с переездом', pay:tng(25000), time:1, fatigue:12, req:{}},
+  {id:'delivery', name:'Развозка товара в субботу', pay:tng(35000), time:1, fatigue:15, req:{}},
+  {id:'design', name:'Срочный заказ на дизайн', pay:tng(60000), time:1, fatigue:10, req:{digital:1}},
+  {id:'event', name:'Работа на мероприятии', pay:tng(28000), time:1, fatigue:12, req:{comm:1}},
+  {id:'docs', name:'Отвезти документы', pay:tng(15000), time:1, fatigue:6, req:{}},
+  {id:'sell', name:'Продать ненужную вещь', pay:tng(18000), time:1, fatigue:2, req:{}},
+];
+
+// Базовый список событий (>100 будет сгенерирован ниже через шаблоны)
+const EVENT_TEMPLATES = [
+  {id:'wedding', weight:8, cond:s=>s.month>=2, build:s=>({
+    title:'Свадьба друга',
+    text:'Серик пригласил тебя на свадьбу. Ты давно с ним дружишь, и не пойти неудобно.',
+    options:[
+      {label:'Подарить 50 000 ₸', effect:s=>{ E.money(s,-tng(50000),'Подарок на свадьбу'); E.social(s,+10); }},
+      {label:'Скромный подарок 20 000 ₸', effect:s=>{ E.money(s,-tng(20000),'Подарок на свадьбу'); E.social(s,+5); }},
+      {label:'Помочь с подготовкой, подарок символический', effect:s=>{ E.money(s,-tng(8000),'Подарок на свадьбу'); E.energy(s,-8); E.social(s,+6); }},
+      {label:'Вежливо отказаться', effect:s=>{ E.social(s,-5); }},
+    ]
+  })},
+  {id:'car', weight:6, cond:s=>s.car!=null, build:s=>({
+    title:'Поломка автомобиля',
+    text:'Утром машина не завелась. В сервисе назвали сумму ремонта.',
+    options:[
+      {label:'Отремонтировать полностью', effect:s=>{ E.money(s,-tng(80000),'Ремонт авто'); }},
+      {label:'Сделать минимальный ремонт', effect:s=>{ E.money(s,-tng(35000),'Ремонт авто'); E.comfort(s,-3); }},
+      {label:'Пока поездить на общественном транспорте', effect:s=>{ E.comfort(s,-5); }},
+    ]
+  })},
+  {id:'premium', weight:5, cond:s=>s.job!=null, build:s=>({
+    title:'Премия на работе',
+    text:'Руководитель отметил вашу работу и объявил премию.',
+    options:[
+      {label:'Получить премию', effect:s=>{ const p = Math.round(s.job.salary*0.2); E.money(s,p,'Премия'); }},
+    ]
+  })},
+  {id:'help_family', weight:6, cond:s=>s.month>=3, build:s=>({
+    title:'Помощь родителям',
+    text:'Родителям нужна помощь — мама попросила немного денег на лечение.',
+    options:[
+      {label:'Помочь (60 000 ₸)', effect:s=>{ E.money(s,-tng(60000),'Помощь родителям'); E.social(s,+8); }},
+      {label:'Помочь частично (25 000 ₸)', effect:s=>{ E.money(s,-tng(25000),'Помощь родителям'); E.social(s,+3); }},
+      {label:'Отказаться', effect:s=>{ E.social(s,-8); E.stress(s,+5); }},
+    ]
+  })},
+  {id:'birthday', weight:7, build:s=>({
+    title:'День рождения родственника',
+    text:'У дяди день рождения. Семья собирается вместе.',
+    options:[
+      {label:'Подарок 30 000 ₸', effect:s=>{ E.money(s,-tng(30000),'Подарок'); E.social(s,+5); }},
+      {label:'Подарок 15 000 ₸', effect:s=>{ E.money(s,-tng(15000),'Подарок'); E.social(s,+2); }},
+      {label:'Поздравить по телефону', effect:s=>{ E.social(s,-1); }},
+    ]
+  })},
+  {id:'medical', weight:3, build:s=>({
+    title:'Неожиданные медицинские расходы',
+    text:'Внезапно заболел зуб. Визит к стоматологу обойдётся в круглую сумму.',
+    options:[
+      {label:'Обратиться в частную клинику', effect:s=>{ E.money(s,-tng(75000),'Медицина'); }},
+      {label:'Потерпеть и пойти в городскую', effect:s=>{ E.money(s,-tng(20000),'Медицина'); E.stress(s,+8); }},
+    ]
+  })},
+  {id:'refund', weight:4, build:s=>({
+    title:'Неожиданный возврат долга',
+    text:'Старый знакомый вернул деньги, которые занимал полгода назад.',
+    options:[
+      {label:'Принять', effect:s=>{ E.money(s,tng(30000),'Возврат долга'); }},
+    ]
+  })},
+  {id:'raise_offer', weight:3, cond:s=>s.job && s.jobTenure>=6, build:s=>({
+    title:'Предложение о переходе в другой отдел',
+    text:'На работе появилась возможность перейти в другой отдел. Зарплата выше на 15%, но придётся пройти испытательный срок.',
+    options:[
+      {label:'Согласиться', effect:s=>{ s.job = {...s.job, salary: Math.round(s.job.salary*1.15)}; s.jobTenure = 0; toast('Зарплата повышена на 15%'); }},
+      {label:'Остаться на текущей позиции', effect:s=>{ E.stress(s,-3); }},
+    ]
+  })},
+  {id:'bank_credit_offer', weight:5, cond:s=>s.month>=4, build:s=>({
+    title:'Банк предлагает кредитный лимит',
+    text:'Банк готов выдать кредит наличными под 24% годовых. Это даст больше свободы сейчас, но повысит будущую финансовую нагрузку.',
+    options:[
+      {label:'Взять 300 000 ₸', effect:s=>{ E.takeCredit(s, tng(300000), 24, 24, 'Кредит наличными'); }},
+      {label:'Отказаться', effect:s=>{}},
+    ]
+  })},
+  {id:'vacation', weight:4, cond:s=>s.month>=6, build:s=>({
+    title:'Отпуск',
+    text:'Друзья зовут в короткое путешествие. Расходы — 120 000 ₸ на человека.',
+    options:[
+      {label:'Поехать', effect:s=>{ E.money(s,-tng(120000),'Отпуск'); E.stress(s,-15); E.social(s,+8); }},
+      {label:'Отказаться, отдохнуть дома', effect:s=>{ E.stress(s,-5); }},
+    ]
+  })},
+  {id:'repair_offer', weight:3, cond:s=>s.month>=8, build:s=>({
+    title:'Ремонт в подъезде',
+    text:'Соседи собирают деньги на ремонт подъезда.',
+    options:[
+      {label:'Сдать 25 000 ₸', effect:s=>{ E.money(s,-tng(25000),'Ремонт подъезда'); E.comfort(s,+2); }},
+      {label:'Отказаться', effect:s=>{ E.social(s,-2); }},
+    ]
+  })},
+];
+
+/* ============================================================
+   ДВИЖОК ЭКОНОМИКИ: изменения состояния
+   ============================================================ */
+const E = {
+  money(s, delta, reason, cat='Прочее'){
+    s.cash += delta;
+    s.tx.push({date:s.year*12+s.month, cat, reason, amount:delta});
+    if (s.cash < 0){
+      // автоматически уходим в минус — это просрочка, штраф
+      s.flags.overdraft = true;
+    }
+  },
+  energy(s, d){ s.energy = clamp(s.energy+d, 0, 100); },
+  stress(s, d){ s.stress = clamp(s.stress+d, 0, 100); },
+  social(s, d){ s.social = clamp(s.social+d, 0, 100); },
+  comfort(s, d){ s.comfort = clamp(s.comfort+d, 0, 100); },
+
+  takeCredit(s, amount, ratePct, months, name){
+    const monthly = Fin.annuity(amount, ratePct, months);
+    s.credits.push({id:uid(), name, balance:amount, rate:ratePct, monthsLeft:months, monthly, initialMonths:months, initialAmount:amount, totalExtra:0});
+    E.money(s, amount, 'Получен кредит: '+name, 'Кредит');
+  },
+
+  // Ежемесячный платёж по кредиту (защита от повторного списания)
+  payCreditMonthly(s, cr){
+    if (cr.balance <= 0) return;
+    const payment = Math.min(cr.monthly, cr.balance + Fin.monthInterest(cr.balance, cr.rate));
+    const res = Fin.applyPayment(cr.balance, cr.rate, payment);
+    cr.balance = res.newBalance;
+    cr.monthsLeft = Math.max(0, cr.monthsLeft-1);
+    E.money(s, -payment, 'Платёж по кредиту: '+cr.name, 'Кредит');
+    if (cr.balance <= 0){ cr.closed = true; toast('Кредит закрыт: '+cr.name); }
+  }
+};
+
+/* ============================================================
+   СЦЕНАРИИ СТАРТА
+   ============================================================ */
+const SCENARIOS = {
+  normal: {name:'Обычная квартира', price:tng(25000000), down:tng(5000000), years:20, rate:18, startSalary:tng(450000), savings:tng(150000), living:tng(175000)},
+  small:  {name:'Небольшая квартира', price:tng(16000000), down:tng(4000000), years:15, rate:17, startSalary:tng(380000), savings:tng(200000), living:tng(150000)},
+  luxury: {name:'Дорогая квартира', price:tng(40000000), down:tng(6000000), years:20, rate:19, startSalary:tng(600000), savings:tng(120000), living:tng(230000)},
+};
+
+const DIFFICULTY = {
+  calm:    {name:'Спокойная жизнь', incomeMul:1.1, expenseMul:.85, eventRisk:.7, desc:'Больше денег, меньше сюрпризов'},
+  realistic:{name:'Реалистичная экономика', incomeMul:1, expenseMul:1, eventRisk:1, desc:'Баланс'},
+  challenge:{name:'Финансовый вызов', incomeMul:.9, expenseMul:1.2, eventRisk:1.4, desc:'Жёстче условия'},
+};
+
+/* ============================================================
+   СОЗДАНИЕ НОВОЙ ИГРЫ
+   ============================================================ */
+function newState(scenarioId, difficultyId){
+  const sc = SCENARIOS[scenarioId];
+  const diff = DIFFICULTY[difficultyId];
+  const loan = sc.price - sc.down;
+  const monthly = Fin.annuity(loan, sc.rate, sc.years*12);
+  return {
+    v:1,
+    scenario:scenarioId, difficulty:difficultyId,
+    year:2025, month:1, day:1,
+    cash: sc.savings,
+    savings: 0, // накопительный счёт
+    deposit: 0,
+    energy:80, stress:30, social:60, comfort:40,
+    skills:{comm:1, anal:1, digital:1, mgmt:0, prof:1},
+    job: CAREERS[0] ? {...CAREERS[0], salary: Math.round(sc.startSalary*diff.incomeMul)} : null,
+    jobTenure: 0,
+    careerSearch: null,   // {vacancy, sent, wait}
+    courses: [],          // активные курсы
+    credits:[{id:'mortgage', name:'Ипотека', balance:loan, rate:sc.rate, monthsLeft:sc.years*12, monthly, initialMonths:sc.years*12, initialAmount:loan, totalExtra:0}],
+    realEstate:[{id:'apt', name:'Квартира', value:sc.price, comfort:40, rented:false}],
+    car: null,
+    tx:[],
+    eventsHistory:[],
+    log:[],
+    activeEvent:null,
+    monthClosed:false,
+    flags:{},
+    firstMonthIntro:false,
+    totalInterestPaid:0,
+    startMonth: 2025*12+1,
+    inflation: 0.006,  // месячная инфляция
+    livingCostBase: Math.round(sc.living * diff.expenseMul),
+    goals:[
+      {id:'emergency', name:'Подушка на 3 месяца расходов', target: null, current:0},
+      {id:'downpayment', name:'Первый взнос на вторую недвижимость', target:tng(5000000), current:0},
+    ],
+    achievements:[]
+  };
+}
+
+/* ============================================================
+   СИСТЕМА МЕСЯЦА: начисление зарплаты, списание расходов
+   ============================================================ */
+function startNextMonth(s){
+  s.monthClosed = false;
+  s.month += 1;
+  if (s.month > 12){ s.month = 1; s.year += 1; }
+  s.day = 1;
+  s.energy = clamp(s.energy+15, 0, 100);
+  s.stress = clamp(s.stress-5, 0, 100);
+  s.social = clamp(s.social-2, 0, 100);
+  s.jobTenure = (s.jobTenure||0) + 1;
+  // инфляция
+  s.livingCostBase = Math.round(s.livingCostBase * (1 + s.inflation));
+  // прогресс курсов
+  s.courses = s.courses.map(c => ({...c, weeksLeft: c.weeksLeft-4}));
+  s.courses.forEach(c=>{ if (c.weeksLeft<=0){ Object.entries(c.effect).forEach(([k,v])=>{ s.skills[k]=(s.skills[k]||0)+v; }); toast('Курс завершён: '+c.name); }});
+  s.courses = s.courses.filter(c=>c.weeksLeft>0);
+  // поиск работы
+  if (s.careerSearch){
+    s.careerSearch.waited = (s.careerSearch.waited||0)+1;
+    if (s.careerSearch.waited >= 2){
+      // решение по вакансии
+      const chance = 0.55 + 0.05*Object.values(s.skills).reduce((a,b)=>a+b,0);
+      if (Math.random() < chance){
+        toast('Вас приглашают на позицию: '+s.careerSearch.vacancy.name);
+        s.pendingJobOffer = s.careerSearch.vacancy;
+      } else {
+        toast('Отказ по вакансии: '+s.careerSearch.vacancy.name);
+      }
+      s.careerSearch = null;
+    }
+  }
+  // зарплата
+  if (s.job){
+    s.cash += s.job.salary;
+    s.tx.push({date:s.year*12+s.month, cat:'Доход', reason:'Зарплата', amount:s.job.salary});
+  }
+  // расходы
+  const expenses = computeMonthlyExpenses(s);
+  Object.values(expenses).forEach(e=>{
+    if (e.amount > 0){
+      s.cash -= e.amount;
+      s.tx.push({date:s.year*12+s.month, cat:e.cat, reason:e.reason, amount:-e.amount});
+    }
+  });
+  // кредиты
+  s.credits.forEach(cr=>E.payCreditMonthly(s, cr));
+  s.credits = s.credits.filter(c=>c.balance>0);
+  // проверка на минус
+  if (s.cash < 0){ s.flags.overdraft = true; s.stress = clamp(s.stress+10,0,100); }
+  // генерация события
+  rollEvent(s);
+  // автосохранение
+  save(s);
+}
+
+function computeMonthlyExpenses(s){
+  const diff = DIFFICULTY[s.difficulty];
+  const base = s.livingCostBase;
+  return {
+    food:      {cat:'Бытовые', reason:'Продукты',  amount: Math.round(base*0.42)},
+    utilities: {cat:'Бытовые', reason:'Коммунальные', amount: Math.round(base*0.22)},
+    transport: {cat:'Бытовые', reason:'Транспорт', amount: Math.round(base*0.16)},
+    internet:  {cat:'Бытовые', reason:'Связь и интернет', amount: Math.round(base*0.08)},
+    misc:      {cat:'Бытовые', reason:'Прочие расходы', amount: Math.round(base*0.12)},
+    car:       s.car ? {cat:'Транспорт', reason:'Содержание авто', amount: Math.round(s.car.maintenance)} : {amount:0},
+  };
+}
+
+/* ============================================================
+   СОБЫТИЯ
+   ============================================================ */
+function rollEvent(s){
+  // Не более одного крупного события в месяц, вероятность зависит от сложности
+  if (Math.random() > 0.75 * DIFFICULTY[s.difficulty].eventRisk){ s.activeEvent = null; return; }
+  const candidates = [];
+  EVENT_TEMPLATES.forEach(t=>{
+    if (t.cond && !t.cond(s)) return;
+    // ограничение повторов
+    const recent = s.eventsHistory.filter(e=>e.id===t.id && (s.year*12+s.month)-e.month < 4).length;
+    if (recent >= 1) return;
+    candidates.push(t);
+  });
+  if (!candidates.length){ s.activeEvent = null; return; }
+  const totalW = candidates.reduce((a,c)=>a+(c.weight||1),0);
+  let r = Math.random()*totalW;
+  let chosen = candidates[0];
+  for (const c of candidates){ r -= (c.weight||1); if (r <= 0){ chosen = c; break; } }
+  s.activeEvent = {id:chosen.id, data: chosen.build(s)};
+  s.eventsHistory.push({id:chosen.id, month: s.year*12+s.month});
+}
+
+/* ============================================================
+   СОХРАНЕНИЕ
+   ============================================================ */
+const SAVE_KEY = 'life_on_credit_v1';
+function save(s){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(s)); }catch(e){} }
+function load(){ try{ const raw = localStorage.getItem(SAVE_KEY); if (raw) return JSON.parse(raw); }catch(e){} return null; }
+function clearSave(){ localStorage.removeItem(SAVE_KEY); }
+
+/* ============================================================
+   UI RENDERER
+   ============================================================ */
+let S = null;
+let currentScreen = 'home';
+
+function el(html){ const d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstElementChild; }
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('on'), 2200);
+}
+function openModal(content){
+  document.getElementById('modal').innerHTML = '';
+  document.getElementById('modal').append(content);
+  document.getElementById('modalWrap').classList.add('on');
+}
+function closeModal(){ document.getElementById('modalWrap').classList.remove('on'); }
+
+function renderAll(){ renderNav(); renderScreen(currentScreen); }
+
+function renderNav(){
+  const items = [
+    {id:'home', ico:'🏠', label:'Главная'},
+    {id:'work', ico:'💼', label:'Работа'},
+    {id:'finance', ico:'₸', label:'Финансы'},
+    {id:'life', ico:'🌿', label:'Жизнь'},
+    {id:'property', ico:'🏘', label:'Имущество'},
+  ];
+  const nav = document.getElementById('nav');
+  nav.innerHTML = items.map(i=>`<div class="item ${currentScreen===i.id?'on':''}" data-nav="${i.id}"><span class="ico">${i.ico}</span>${i.label}</div>`).join('');
+  nav.querySelectorAll('[data-nav]').forEach(x=>x.onclick = ()=>{ currentScreen = x.dataset.nav; renderAll(); });
+}
+
+function go(screen){ currentScreen = screen; renderAll(); }
+
+function renderScreen(id){
+  const root = document.getElementById('screens');
+  root.innerHTML = '';
+  const node = screens[id]();
+  node.classList.add('screen','active');
+  root.append(node);
+  const footer = renderFooter();
+  if (footer) root.append(footer);
+}
+
+/* ============================================================
+   ЭКРАНЫ
+   ============================================================ */
+const screens = {};
+
+screens.home = function(){
+  if (!S) return startScreen();
+  const s = S;
+  const mortgage = s.credits.find(c=>c.name==='Ипотека' || c.id==='mortgage') || s.credits[0];
+  const expenses = computeMonthlyExpenses(s);
+  const totalExp = Object.values(expenses).reduce((a,e)=>a+e.amount,0) + (mortgage? mortgage.monthly:0) + s.credits.reduce((a,c)=>a+(c.id!=='mortgage'?c.monthly:0),0);
+  const income = (s.job?s.job.salary:0);
+  const freeFlow = income - totalExp;
+  const pct = mortgage ? 1 - mortgage.balance/mortgage.initialAmount : 1;
+
+  const c = el(`<div></div>`);
+  c.innerHTML = `
+    <div class="row" style="margin-bottom:6px">
+      <div>
+        <div class="muted">${monthName(s.month)} ${s.year}</div>
+        <div class="big num">${fmt(s.cash)}</div>
+      </div>
+      <div style="text-align:right">
+        <span class="pill ${freeFlow>=0?'g':'r'}">${freeFlow>=0?'Профицит':'Дефицит'}: ${fmt(freeFlow)}/мес</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row"><h3>Ипотека</h3><span class="pill">${Math.round(pct*100)}% погашено</span></div>
+      <div class="big red num">${fmt(mortgage?mortgage.balance:0)}</div>
+      <div class="muted">Платёж ${fmt(mortgage?mortgage.monthly:0)} · осталось ${mortgage?mortgage.monthsLeft:0} мес.</div>
+      <div class="progress" style="margin-top:8px"><i style="width:${Math.min(100,pct*100)}%"></i></div>
+      <svg class="spark" viewBox="0 0 300 70" preserveAspectRatio="none" data-spark="debt"></svg>
+    </div>
+
+    <div class="grid2">
+      <div class="chip"><div class="muted">Доход</div><div class="v green num">${fmt(income)}</div></div>
+      <div class="chip"><div class="muted">Обязательные</div><div class="v red num">${fmt(totalExp)}</div></div>
+      <div class="chip"><div class="muted">Накопления</div><div class="v num">${fmt(s.savings + s.deposit)}</div></div>
+      <div class="chip"><div class="muted">Свободный поток</div><div class="v ${freeFlow>=0?'green':'red'} num">${fmt(freeFlow)}</div></div>
+    </div>
+
+    <div class="card">
+      <div class="row"><h3>Главное событие</h3>${s.activeEvent?'<span class="pill r">Требует решения</span>':''}</div>
+      ${s.activeEvent ? `
+        <div class="event-hero">
+          <b>${escape(s.activeEvent.data.title)}</b>
+          <div class="muted" style="margin-top:4px">${escape(s.activeEvent.data.text)}</div>
+        </div>
+        <div class="btn-row"><button onclick="openActiveEvent()">Открыть</button></div>
+      ` : `
+        <div class="muted">Пока новых событий нет. Проведите месяц или займитесь делами.</div>
+      `}
+    </div>
+
+    <div class="card">
+      <div class="row"><h3>Цели</h3></div>
+      ${s.goals.map(g=>{
+        const target = g.id==='emergency' ? (s.livingCostBase*3) : g.target;
+        const cur = g.id==='emergency' ? (s.savings + s.deposit) : (s.savings+s.deposit);
+        const p = target? clamp(cur/target*100,0,100):0;
+        return `<div class="goal"><div class="top"><span>${g.name}</span><span class="num">${fmt(Math.min(cur,target||cur))} / ${target?fmt(target):'—'}</span></div><div class="progress"><i style="width:${p}%"></i></div></div>`;
+      }).join('')}
+    </div>
+
+    <div class="card">
+      <div class="row"><h3>Последние операции</h3></div>
+      ${s.tx.slice(-5).reverse().map(tx=>`<div class="list-item"><div><div>${escape(tx.reason)}</div><div class="muted">${catName(tx.cat)}</div></div><div class="num ${tx.amount>=0?'green':'red'}">${tx.amount>=0?'+':''}${fmt(tx.amount)}</div></div>`).join('') || '<div class="muted">Пока нет операций</div>'}
+    </div>
+  `;
+  setTimeout(()=>{ drawDebtSpark(c); }, 10);
+  return c;
+};
+
+function drawDebtSpark(root){
+  const svg = root.querySelector('[data-spark="debt"]'); if (!svg) return;
+  const mort = S.credits.find(c=>c.name==='Ипотека'||c.id==='mortgage');
+  if (!mort) return;
+  const steps = 30;
+  const points = [];
+  let bal = mort.initialAmount;
+  const monthly = mort.monthly;
+  for (let i=0;i<steps;i++){
+    const r = Fin.monthInterest(bal, mort.rate);
+    const p = Math.min(bal, monthly-r);
+    bal -= p;
+    points.push(bal);
+    if (bal <= 0) break;
+  }
+  const max = Math.max(...points, 1);
+  const W = 300, H = 70;
+  const stepX = W / Math.max(points.length-1,1);
+  const path = points.map((v,i)=>`${i===0?'M':'L'} ${(i*stepX).toFixed(1)} ${(H - v/max*H + 1).toFixed(1)}`).join(' ');
+  svg.innerHTML = `<path d="${path}" stroke="#2f6fed" stroke-width="2" fill="none"/>`;
+}
+
+screens.work = function(){
+  const s = S;
+  const c = el(`<div></div>`);
+  const job = s.job;
+  c.innerHTML = `
+    <h1>Работа и карьера</h1>
+    <div class="card">
+      <div class="row"><h3>${job?job.name:'Без работы'}</h3>${job?`<span class="pill g">${fmt(job.salary)}/мес</span>`:''}</div>
+      <div class="muted">Стаж: ${s.jobTenure} мес.</div>
+      <div class="divider"></div>
+      <div class="muted">Навыки:</div>
+      ${Object.entries(s.skills).map(([k,v])=>`<div class="kv"><span>${skillName(k)}</span><span class="num">${v}</span></div>`).join('')}
+      <div class="btn-row" style="margin-top:10px">
+        <button class="gray" onclick="go('courses')">Обучение</button>
+        <button class="gray" onclick="go('jobs')">Вакансии</button>
+        <button class="ghost" onclick="openSubjobs()">Подработки</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Подработки</h3>
+      <div class="muted">Доступны с учётом навыков. Ограничение — усталость.</div>
+      <div class="btn-row" style="margin-top:10px"><button onclick="openSubjobs()">Открыть список</button></div>
+    </div>
+  `;
+  return c;
+};
+
+screens.finance = function(){
+  const s = S;
+  const mort = s.credits.find(c=>c.id==='mortgage' || c.name==='Ипотека');
+  const others = s.credits.filter(c=>c!==mort);
+  const c = el(`<div></div>`);
+  c.innerHTML = `
+    <h1>Финансы</h1>
+    <div class="card">
+      <div class="row"><h3>Баланс</h3></div>
+      <div class="big num">${fmt(s.cash)}</div>
+      <div class="muted">Накопительный счёт: ${fmt(s.savings)} · Депозит: ${fmt(s.deposit)}</div>
+      <div class="btn-row" style="margin-top:10px">
+        <button class="ghost" onclick="openMoveToSavings()">Перевести на накопления</button>
+      </div>
+    </div>
+
+    ${mort?`
+    <div class="card">
+      <div class="row"><h3>Моя ипотека</h3><span class="pill">${mort.rate}%</span></div>
+      <div class="kv"><span>Остаток</span><span class="num red">${fmt(mort.balance)}</span></div>
+      <div class="kv"><span>Платёж</span><span class="num">${fmt(mort.monthly)}</span></div>
+      <div class="kv"><span>Осталось</span><span class="num">${mort.monthsLeft} мес.</span></div>
+      <div class="kv"><span>Прогноз переплаты</span><span class="num">${fmt(Fin.totalInterestForecast(mort.balance, mort.rate, mort.monthsLeft, mort.monthly))}</span></div>
+      <div class="btn-row" style="margin-top:10px">
+        <button onclick="openPrepay()">Досрочное погашение</button>
+        <button class="ghost" onclick="openSchedule()">График</button>
+      </div>
+    </div>`:''}
+
+    ${others.length?`<div class="card"><h3>Прочие кредиты</h3>${others.map(cr=>`<div class="kv"><span>${escape(cr.name)}</span><span class="num">${fmt(cr.balance)} / ${fmt(cr.monthly)}</span></div>`).join('')}</div>`:''}
+
+    <div class="card">
+      <h3>Банк</h3>
+      <div class="muted">Рефинансирование, депозиты, кредиты.</div>
+      <div class="btn-row" style="margin-top:10px"><button onclick="openBank()">Банковские предложения</button></div>
+    </div>
+
+    <div class="card">
+      <h3>История операций</h3>
+      <div style="max-height:300px;overflow:auto">
+        ${s.tx.slice(-40).reverse().map(tx=>`<div class="list-item"><div><div>${escape(tx.reason)}</div><div class="muted">${catName(tx.cat)}</div></div><div class="num ${tx.amount>=0?'green':'red'}">${tx.amount>=0?'+':''}${fmt(tx.amount)}</div></div>`).join('') || '<div class="muted">Пусто</div>'}
+      </div>
+    </div>
+  `;
+  return c;
+};
+
+screens.life = function(){
+  const s = S;
+  const c = el(`<div></div>`);
+  const bar = (label, v, color)=>`<div class="goal"><div class="top"><span>${label}</span><span>${v}/100</span></div><div class="progress"><i style="background:${color};width:${v}%"></i></div></div>`;
+  c.innerHTML = `
+    <h1>Жизнь</h1>
+    <div class="card">
+      <h3>Баланс</h3>
+      ${bar('Энергия', s.energy, '#2f6fed')}
+      ${bar('Стресс', s.stress, '#d64545')}
+      ${bar('Социальные отношения', s.social, '#1f9d55')}
+      ${bar('Комфорт жилья', s.comfort, '#8e44ad')}
+      <div class="btn-row" style="margin-top:8px">
+        <button class="ghost" onclick="lifeRest()">Отдохнуть дома</button>
+        <button class="ghost" onclick="lifeFriends()">Встретиться с друзьями</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Достижения</h3>
+      ${(s.achievements||[]).length? (s.achievements.map(a=>`<div class="kv"><span>${escape(a.name)}</span><span class="muted">${a.date||''}</span></div>`).join('')) : '<div class="muted">Пока нет</div>'}
+    </div>
+  `;
+  return c;
+};
+
+screens.property = function(){
+  const s = S;
+  const c = el(`<div></div>`);
+  c.innerHTML = `
+    <h1>Имущество</h1>
+    ${s.realEstate.map(re=>`
+      <div class="card">
+        <div class="row"><h3>${escape(re.name)}</h3><span class="pill">${fmt(re.value)}</span></div>
+        <div class="muted">Комфорт: ${re.comfort}/100</div>
+        <div class="progress" style="margin-top:6px"><i style="width:${re.comfort}%"></i></div>
+      </div>
+    `).join('')}
+    ${s.car?`<div class="card"><div class="row"><h3>${escape(s.car.name)}</h3><span class="pill">${fmt(s.car.value)}</span></div><div class="muted">Содержание: ${fmt(s.car.maintenance)}/мес</div></div>`:''}
+    <div class="card">
+      <h3>Улучшения</h3>
+      <div class="muted">Ремонт и мебель повышают комфорт.</div>
+      <div class="btn-row" style="margin-top:10px">
+        <button class="ghost" onclick="openRepair()">Ремонт</button>
+        <button class="ghost" onclick="openCarBuy()">Купить авто</button>
+      </div>
+    </div>
+  `;
+  return c;
+};
+
+screens.courses = function(){
+  const s = S;
+  const c = el(`<div></div>`);
+  c.innerHTML = `
+    <h1>Обучение</h1>
+    <button class="ghost" onclick="go('work')">← Назад</button>
+    ${COURSES.map(cr=>{
+      const active = s.courses.find(x=>x.id===cr.id);
+      const reqStr = Object.entries(cr.effect).map(([k,v])=>`${skillName(k)} +${v}`).join(', ');
+      return `<div class="card">
+        <div class="row"><h3>${cr.name}</h3><span class="pill">${cr.weeks} нед.</span></div>
+        <div class="muted">${reqStr}</div>
+        <div class="kv"><span>Стоимость</span><span class="num">${fmt(cr.cost)}</span></div>
+        <div class="btn-row" style="margin-top:8px">
+          ${active?`<button class="gray" disabled>Учится (${active.weeksLeft} нед.)</button>`:`<button onclick="startCourse('${cr.id}')">Записаться</button>`}
+        </div>
+      </div>`;
+    }).join('')}
+  `;
+  return c;
+};
+
+screens.jobs = function(){
+  const s = S;
+  const c = el(`<div></div>`);
+  c.innerHTML = `
+    <h1>Вакансии</h1>
+    <button class="ghost" onclick="go('work')">← Назад</button>
+    ${s.careerSearch? `<div class="card"><b>Ожидание ответа</b><div class="muted">${escape(s.careerSearch.vacancy.name)} · ждём 1–2 месяца</div></div>`:''}
+    ${CAREERS.map(cr=>{
+      const skillsOk = Object.entries(cr.req).every(([k,v])=>(s.skills[k]||0)>=v);
+      return `<div class="card">
+        <div class="row"><h3>${cr.name}</h3><span class="pill ${skillsOk?'g':'r'}">${fmt(cr.salary)}</span></div>
+        <div class="muted">Требования: ${Object.entries(cr.req).map(([k,v])=>`${skillName(k)} ${v}`).join(', ')||'—'}</div>
+        <div class="btn-row" style="margin-top:8px">
+          ${!skillsOk?`<button class="gray" disabled>Не хватает навыков</button>`:
+            s.careerSearch?`<button class="gray" disabled>Идёт поиск</button>`:
+            `<button onclick="applyJob('${cr.id}')">Откликнуться</button>`}
+        </div>
+      </div>`;
+    }).join('')}
+    ${s.pendingJobOffer?`<div class="card" style="border:1px solid var(--green)">
+      <b>Вам предложили работу!</b>
+      <div class="muted">${escape(s.pendingJobOffer.name)} — ${fmt(s.pendingJobOffer.salary)}</div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="green" onclick="acceptOffer()">Принять</button>
+        <button class="gray" onclick="declineOffer()">Отказаться</button>
+      </div>
+    </div>`:''}
+  `;
+  return c;
+};
+
+/* ============================================================
+   ФУТЕР: кнопки времени (показываем на главной и финансах)
+   ============================================================ */
+function renderFooter(){
+  if (!S) return null;
+  if (currentScreen === 'home' || currentScreen === 'finance'){
+    const closed = S.monthClosed;
+    const f = el(`<div style="margin-top:4px"></div>`);
+    f.innerHTML = `
+      <div class="card">
+        <div class="row"><h3>Течение времени</h3><span class="muted">${monthName(S.month)} ${S.year}</span></div>
+        <div class="btn-row" style="margin-top:8px">
+          <button class="ghost" onclick="advanceDay()">Следующий день</button>
+          <button class="ghost" onclick="advanceWeek()">Завершить неделю</button>
+          <button class="green" ${closed?'disabled':''} onclick="openMonthClose()">Перейти к следующему месяцу</button>
+        </div>
+        <div class="hint">Прогноз: доход ${fmt(S.job?S.job.salary:0)}, обязательные расходы будут списаны автоматически. Перед закрытием месяца вы увидите отчёт.</div>
+      </div>
+    `;
+    return f;
+  }
+  return null;
+}
+
+/* ============================================================
+   ЭКРАН СТАРТА
+   ============================================================ */
+function startScreen(){
+  const c = el(`<div></div>`);
+  c.innerHTML = `
+    <h1>Жизнь в рассрочку</h1>
+    <div class="card">
+      <div class="event-hero">
+        <b>Поздравляем! Вы стали владельцем собственного жилья.</b>
+        <div class="muted" style="margin-top:6px">После долгих поисков, сбора документов и одобрения банка вы наконец получили ключи. Но вместе с ключами вы получили обязательство, которое повлияет на ближайшие годы.</div>
+      </div>
+      <div class="field">
+        <label class="muted">Сценарий</label>
+        <select id="scenarioSel">
+          ${Object.entries(SCENARIOS).map(([k,v])=>`<option value="${k}">${v.name} · ${fmt(v.price)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field">
+        <label class="muted">Сложность</label>
+        <select id="diffSel">
+          ${Object.entries(DIFFICULTY).map(([k,v])=>`<option value="${k}">${v.name} — ${v.desc}</option>`).join('')}
+        </select>
+      </div>
+      <div class="btn-row">
+        <button class="green" onclick="startNew()">Начать новую жизнь</button>
+      </div>
+      ${load()?`<div class="btn-row" style="margin-top:8px"><button class="ghost" onclick="continueGame()">Продолжить сохранённую</button></div>`:''}
+    </div>
+    <div class="card muted">
+      Игра сохраняется автоматически. Все финансовые операции проводятся через единый движок. Суммы — в тенге (₸).
+    </div>
+  `;
+  return c;
+}
+
+function startNew(){
+  const sc = document.getElementById('scenarioSel').value;
+  const df = document.getElementById('diffSel').value;
+  S = newState(sc, df);
+  save(S);
+  showMortgageIntro();
+}
+
+function continueGame(){
+  const s = load(); if (!s) return;
+  S = migrate(s);
+  currentScreen = 'home';
+  renderAll();
+}
+
+function migrate(s){
+  // на будущее: добавление недостающих полей
+  if (!s.achievements) s.achievements = [];
+  if (!s.credits) s.credits = [];
+  return s;
+}
+
+function showMortgageIntro(){
+  const s = S;
+  const m = s.credits[0];
+  const totalInterest = Fin.totalInterestForecast(m.balance, m.rate, m.monthsLeft, m.monthly);
+  const modal = el(`<div></div>`);
+  modal.innerHTML = `
+    <h2>Ваша ипотека</h2>
+    <div class="muted">${escape(SCENARIOS[s.scenario].name)}</div>
+    <div class="divider"></div>
+    <div class="kv"><span>Стоимость квартиры</span><span class="num">${fmt(SCENARIOS[s.scenario].price)}</span></div>
+    <div class="kv"><span>Первоначальный взнос</span><span class="num">${fmt(SCENARIOS[s.scenario].down)}</span></div>
+    <div class="kv"><span>Сумма кредита</span><span class="num">${fmt(m.initialAmount)}</span></div>
+    <div class="kv"><span>Ставка</span><span class="num">${m.rate}%</span></div>
+    <div class="kv"><span>Срок</span><span class="num">${m.initialMonths/12} лет</span></div>
+    <div class="kv"><span>Ежемесячный платёж</span><span class="num">${fmt(m.monthly)}</span></div>
+    <div class="kv"><span>Прогноз переплаты</span><span class="num">${fmt(totalInterest)}</span></div>
+    <div class="btn-row" style="margin-top:12px"><button class="green" onclick="closeModal(); afterIntro()">Начать новую жизнь</button></div>
+  `;
+  openModal(modal);
+}
+
+function afterIntro(){
+  // родственники дарят деньги
+  const gift = tng(200000);
+  S.cash += gift;
+  S.tx.push({date:S.year*12+S.month, cat:'Доход', reason:'Подарок от родственников', amount:gift});
+  save(S);
+  renderAll();
+  const modal = el(`<div></div>`);
+  modal.innerHTML = `
+    <h2>Подарок на новоселье</h2>
+    <div class="muted">Родственники подарили вам ${fmt(gift)}. Что с ними сделать?</div>
+    <div class="btn-row" style="margin-top:12px;flex-direction:column">
+      <button onclick="giftChoice('prepay')">Внести в досрочное погашение</button>
+      <button class="gray" onclick="giftChoice('repair')">Сделать ремонт (80 000 ₸), остальное оставить</button>
+      <button class="gray" onclick="giftChoice('furniture')">Купить мебель (100 000 ₸), остальное оставить</button>
+      <button class="ghost" onclick="giftChoice('save')">Оставить на накопительном счёте</button>
+    </div>
+  `;
+  openModal(modal);
+}
+
+function giftChoice(kind){
+  const s = S;
+  const mort = s.credits[0];
+  if (kind === 'prepay'){
+    const extra = Math.min(tng(200000), mort.balance);
+    s.cash -= extra;
+    const nLoan = Fin.prepay(mort, extra, 'term');
+    s.credits[0] = nLoan;
+    s.tx.push({date:s.year*12+s.month, cat:'Кредит', reason:'Досрочное погашение', amount:-extra});
+    toast('Досрочно погашено '+fmt(extra));
+  } else if (kind === 'repair'){
+    if (s.cash >= tng(80000)){
+      s.cash -= tng(80000);
+      s.comfort = clamp(s.comfort+15,0,100);
+      s.tx.push({date:s.year*12+s.month, cat:'Имущество', reason:'Ремонт', amount:-tng(80000)});
+      toast('Комфорт повышен');
+    }
+  } else if (kind === 'furniture'){
+    if (s.cash >= tng(100000)){
+      s.cash -= tng(100000);
+      s.comfort = clamp(s.comfort+10,0,100);
+      s.tx.push({date:s.year*12+s.month, cat:'Имущество', reason:'Мебель', amount:-tng(100000)});
+      toast('Мебель куплена');
+    }
+  } else if (kind === 'save'){
+    s.savings += tng(200000); s.cash -= tng(200000);
+    s.tx.push({date:s.year*12+s.month, cat:'Накопления', reason:'Перевод на накопления', amount:-tng(200000)});
+    toast('Средства на накоплениях');
+  }
+  save(S);
+  closeModal();
+  renderAll();
+}
+
+/* ============================================================
+   ВРЕМЯ
+   ============================================================ */
+function advanceDay(){
+  if (!S) return;
+  S.day = S.day + 1;
+  if (S.day > 7){
+    // простая логика: до 7 дней в неделе, месяц закрывается вручную
+    S.day = 1;
+    toast('Прошла неделя');
+  }
+  save(S);
+  renderAll();
+}
+function advanceWeek(){
+  if (!S) return;
+  S.day = Math.min(7, S.day+7);
+  toast('Прошла неделя');
+  save(S); renderAll();
+}
+
+function openMonthClose(){
+  if (!S || S.monthClosed) return;
+  const s = S;
+  const expenses = computeMonthlyExpenses(s);
+  const totalExp = Object.values(expenses).reduce((a,e)=>a+e.amount,0);
+  const mort = s.credits.find(c=>c.id==='mortgage');
+  const mortPay = mort?mort.monthly:0;
+  const income = s.job?s.job.salary:0;
+  const flow = income - totalExp - mortPay;
+  const modal = el(`<div></div>`);
+  modal.innerHTML = `
+    <h2>Закрытие месяца</h2>
+    <div class="muted">${monthName(s.month)} ${s.year}</div>
+    <div class="divider"></div>
+    <div class="monthly-row"><span>Зарплата</span><span class="v green">+${fmt(income)}</span></div>
+    <div class="monthly-row"><span>Продукты</span><span class="v red">−${fmt(expenses.food.amount)}</span></div>
+    <div class="monthly-row"><span>Коммунальные</span><span class="v red">−${fmt(expenses.utilities.amount)}</span></div>
+    <div class="monthly-row"><span>Транспорт</span><span class="v red">−${fmt(expenses.transport.amount)}</span></div>
+    <div class="monthly-row"><span>Связь и интернет</span><span class="v red">−${fmt(expenses.internet.amount)}</span></div>
+    <div class="monthly-row"><span>Прочие</span><span class="v red">−${fmt(expenses.misc.amount)}</span></div>
+    ${mort?`<div class="monthly-row"><span>Ипотека</span><span class="v red">−${fmt(mortPay)}</span></div>`:''}
+    <div class="divider"></div>
+    <div class="monthly-row"><b>Итог месяца</b><span class="v ${flow>=0?'green':'red'}"><b>${flow>=0?'+':'−'}${fmt(Math.abs(flow))}</b></span></div>
+    <div class="divider"></div>
+    <button class="green" style="width:100%" onclick="confirmMonth()">Подтвердить и перейти к следующему месяцу</button>
+    <button class="ghost" style="width:100%;margin-top:8px" onclick="closeModal()">Отмена</button>
+  `;
+  openModal(modal);
+}
+
+function confirmMonth(){
+  if (!S || S.monthClosed) return;
+  S.monthClosed = true;
+  save(S);
+  closeModal();
+  startNextMonth(S);
+  renderAll();
+  // если событие — показать его
+  if (S.activeEvent){
+    setTimeout(()=>openActiveEvent(), 200);
+  }
+}
+
+/* ============================================================
+   СОБЫТИЯ: открыть и применить
+   ============================================================ */
+function openActiveEvent(){
+  const s = S;
+  if (!s.activeEvent) return;
+  const ev = s.activeEvent.data;
+  const modal = el(`<div></div>`);
+  modal.innerHTML = `
+    <h2>${escape(ev.title)}</h2>
+    <div class="muted">${escape(ev.text)}</div>
+    <div class="divider"></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${ev.options.map((o,i)=>`<button onclick="chooseEventOption(${i})">${escape(o.label)}</button>`).join('')}
+    </div>
+  `;
+  openModal(modal);
+}
+
+function chooseEventOption(idx){
+  const s = S;
+  if (!s.activeEvent) return;
+  const ev = s.activeEvent.data;
+  const opt = ev.options[idx];
+  closeModal();
+  opt.effect(s);
+  s.activeEvent = null;
+  save(S);
+  renderAll();
+}
+
+/* ============================================================
+   ДОСРОЧНОЕ ПОГАШЕНИЕ
+   ============================================================ */
+function openPrepay(){
+  const s = S;
+  const mort = s.credits.find(c=>c.id==='mortgage' || c.name==='Ипотека');
+  if (!mort) return;
+  const maxExtra = Math.min(s.cash, mort.balance);
+  const beforeInterest = Fin.totalInterestForecast(mort.balance, mort.rate, mort.monthsLeft, mort.monthly);
+  const modal = el(`<div></div>`);
+  modal.innerHTML = `
+    <h2>Досрочное погашение</h2>
+    <div class="muted">Доступно: ${fmt(s.cash)}. Остаток долга: ${fmt(mort.balance)}.</div>
+    <div class="field" style="margin-top:10px">
+      <label class="muted">Сумма (в тенге)</label>
+      <input type="number" id="prepaySum" value="${Math.round(maxExtra/T)}" min="0" max="${Math.round(mort.balance/T)}"/>
+    </div>
+    <div class="field">
+      <label class="muted">Стратегия</label>
+      <select id="prepayStrategy">
+        <option value="term">Сократить срок (платёж прежний)</option>
+        <option value="payment">Уменьшить платёж (срок прежний)</option>
+      </select>
+    </div>
+    <div id="prepayPreview" class="card" style="box-shadow:none;background:#f7f9fb"></div>
+    <div class="btn-row" style="margin-top:10px">
+      <button class="green" onclick="doPrepay()">Внести</button>
+      <button class="ghost" onclick="closeModal()">Отмена</button>
+    </div>
+  `;
+  openModal(modal);
+  const input = modal.querySelector('#prepaySum');
+  const sel = modal.querySelector('#prepayStrategy');
+  const preview = modal.querySelector('#prepayPreview');
+  function update(){
+    const amt = Math.max(0, Math.min(mort.balance, tng(Number(input.value)||0)));
+    const after = Fin.prepay({...mort}, amt, sel.value);
+    const newInterest = Fin.totalInterestForecast(after.balance, after.rate, after.monthsLeft, after.monthly);
+    preview.innerHTML = `
+      <div class="kv"><span>Сумма к внесению</span><span class="num">${fmt(amt)}</span></div>
+      <div class="kv"><span>Платёж: было / станет</span><span class="num">${fmt(mort.monthly)} → ${fmt(after.monthly)}</span></div>
+      <div class="kv"><span>Срок: было / станет</span><span class="num">${mort.monthsLeft} → ${after.monthsLeft} мес.</span></div>
+      <div class="kv"><span>Прогноз процентов</span><span class="num">${fmt(beforeInterest)} → ${fmt(newInterest)}</span></div>
+      <div class="kv"><span>Экономия на процентах</span><span class="num green">${fmt(beforeInterest-newInterest)}</span></div>
+    `;
+  }
+  input.oninput = update; sel.onchange = update; update();
+}
+
+function doPrepay(){
+  const s = S;
+  const mort = s.credits.find(c=>c.id==='mortgage' || c.name==='Ипотека');
+  if (!mort) return;
+  const input = document.getElementById('prepaySum');
+  const sel = document.getElementById('prepayStrategy');
+  const amt = Math.max(0, Math.min(mort.balance, tng(Number(input.value)||0)));
+  if (amt <= 0){ toast('Некорректная сумма'); return; }
+  if (amt > s.cash){ toast('Недостаточно средств'); return; }
+  s.cash -= amt;
+  const after = Fin.prepay(mort, amt, sel.value);
+  const idx = s.credits.indexOf(mort);
+  s.credits[idx] = after;
+  s.tx.push({date:s.year*12+s.month, cat:'Кредит', reason:'Досрочное погашение', amount:-amt});
+  closeModal();
+  save(S);
+  renderAll();
+  toast('Досрочное погашение выполнено');
+}
+
+/* ============================================================
+   ГРАФИК ПЛАТЕЖЕЙ
+   ============================================================ */
+function openSchedule(){
+  const s = S;
+  const mort = s.credits.find(c=>c.id==='mortgage' || c.name==='Ипотека');
+  if (!mort) return;
+  let bal = mort.balance; let rows = []; let totalInt = 0; let i = 0;
+  while (bal > 0 && i < mort.monthsLeft+1){
+    const interest = Fin.monthInterest(bal, mort.rate);
+    const principal = Math.min(bal, mort.monthly - interest);
+    bal -= principal; totalInt += interest;
+    rows.push({i:i+1, interest, principal, bal});
+    i++;
+    if (principal <= 0) break;
+  }
+  const modal = el(`<div></div>`);
+  modal.innerHTML = `
+    <h2>График платежей</h2>
+    <div class="muted">Переплата по текущим условиям: ${fmt(totalInt)}</div>
+    <div class="scroll-x" style="max-height:300px;overflow:auto;margin-top:8px">
+      <table class="mini">
+        <tr><th>№</th><th>Проценты</th><th>Долг</th><th>Остаток</th></tr>
+        ${rows.slice(0,60).map(r=>`<tr><td>${r.i}</td><td>${fmt0(r.interest)}</td><td>${fmt0(r.principal)}</td><td>${fmt0(r.bal)}</td></tr>`).join('')}
+        ${rows.length>60?`<tr><td colspan="4" class="muted center">… ещё ${rows.length-60} платежей</td></tr>`:''}
+      </table>
+    </div>
+    <div class="btn-row" style="margin-top:10px"><button class="ghost" onclick="closeModal()">Закрыть</button></div>
+  `;
+  openModal(modal);
+}
+
+/* ============================================================
+   БАНК: рефинансирование и кредиты
+   ============================================================ */
+function openBank(){
+  const s = S;
+  const mort = s.credits.find(c=>c.id==='mortgage' || c.name==='Ипотека');
+  const modal = el(`<div></div>`);
+  let refinanceBlock = '<div class="muted">Пока нет доступных предложений.</div>';
+  if (mort && (s.jobTenure>=3)){
+    const newRate = Math.max(mort.rate-2.5, 12);
+    const newMonthly = Fin.annuity(mort.balance, newRate, mort.monthsLeft);
+    const oldInterest = Fin.totalInterestForecast(mort.balance, mort.rate, mort.monthsLeft, mort.monthly);
+    const newInterest = Fin.totalInterestForecast(mort.balance, newRate, mort.monthsLeft, newMonthly);
+    const fee = tng(150000);
+    refinanceBlock = `
+      <div class="card" style="box-shadow:none;background:#f7f9fb">
+        <div class="muted">Банк подготовил предложение по пересмотру условий.</div>
+        <div class="kv"><span>Ставка</span><span class="num">${mort.rate}% → ${newRate}%</span></div>
+        <div class="kv"><span>Платёж</span><span class="num">${fmt(mort.monthly)} → ${fmt(newMonthly)}</span></div>
+        <div class="kv"><span>Прогноз процентов</span><span class="num">${fmt(oldInterest)} → ${fmt(newInterest)}</span></div>
+        <div class="kv"><span>Комиссия за оформление</span><span class="num">${fmt(fee)}</span></div>
+        <div class="btn-row" style="margin-top:8px">
+          <button onclick="doRefinance(${newRate}, ${newMonthly}, ${fee})">Рефинансировать</button>
+        </div>
+      </div>
+    `;
+  }
+  modal.innerHTML = `
+    <h2>Банк</h2>
+    <div class="divider"></div>
+    <h3>Рефинансирование</h3>
+    ${refinanceBlock}
+    <div class="divider"></div>
+    <h3>Депозит</h3>
+    <div class="muted">Открыть срочный депозит под 14% годовых на 6 месяцев.</div>
+    <div class="btn-row" style="margin-top:8px">
+      <button class="ghost" onclick="openDeposit()">Открыть депозит</button>
+    </div>
+    <div class="btn-row" style="margin-top:12px"><button class="gray" onclick="closeModal()">Закрыть</button></div>
+  `;
+  openModal(modal);
+}
+
+function doRefinance(newRate, newMonthly, fee){
+  const s = S;
+  if (s.cash < fee){ toast('Недостаточно средств на комиссию'); return; }
+  const mort = s.credits.find(c=>c.id==='mortgage' || c.name==='Ипотека');
+  if (!mort) return;
+  mort.rate = newRate;
+  mort.monthly = newMonthly;
+  s.cash -= fee;
+  s.tx.push({date:s.year*12+s.month, cat:'Банк', reason:'Комиссия за рефинансирование', amount:-fee});
+  save(S); closeModal(); renderAll();
+  toast('Рефинансирование оформлено');
+}
+
+function openDeposit(){
+  const s = S;
+  const modal = el(`<div></div>`);
+  modal.innerHTML = `
+    <h2>Депозит</h2>
+    <div class="muted">Введите сумму (в тенге). Ставка 14% годовых.</div>
+    <div class="field"><input type="number" id="depSum" value="${Math.round(Math.min(s.savings, tng(500000))/T)}"/></div>
+    <div class="btn-row">
+      <button class="green" onclick="doDeposit()">Открыть</button>
+      <button class="ghost" onclick="closeModal()">Отмена</button>
+    </div>
+  `;
+  openModal(modal);
+}
+
+function doDeposit(){
+  const s = S;
+  const amt = Math.max(0, tng(Number(document.getElementById('depSum').value)||0));
+  if (amt <= 0 || amt > s.savings){ toast('Недостаточно на накоплениях'); return; }
+  s.savings -= amt;
+  s.deposit += amt;
+  s.tx.push({date:s.year*12+s.month, cat:'Банк', reason:'Открыт депозит', amount:-amt});
+  closeModal(); save(S); renderAll(); toast('Депозит открыт');
+}
+
+/* ============================================================
+   ПЕРЕВОД НА НАКОПЛЕНИЯ
+   ============================================================ */
+function openMoveToSavings(){
+  const s = S;
+  const modal = el(`<div></div>`);
+  modal.innerHTML = `
+    <h2>Накопления</h2>
+    <div class="muted">Доступно: ${fmt(s.cash)}. Накопительный счёт 12% годовых, снятие без ограничений.</div>
+    <div class="field"><input type="number" id="saveSum" value="${Math.round(s.cash/T/2)}"/></div>
+    <div class="btn-row">
+      <button class="green" onclick="doMoveToSavings()">Перевести</button>
+      <button class="ghost" onclick="closeModal()">Отмена</button>
+    </div>
+  `;
+  openModal(modal);
+}
+
+function doMoveToSavings(){
+  const s = S;
+  const amt = Math.max(0, tng(Number(document.getElementById('saveSum').value)||0));
+  if (amt <= 0 || amt > s.cash){ toast('Некорректно'); return; }
+  s.cash -= amt; s.savings += amt;
+  s.tx.push({date:s.year*12+s.month, cat:'Накопления', reason:'Перевод на накопления', amount:-amt});
+  closeModal(); save(S); renderAll(); toast('Средства переведены');
+}
+
+/* ============================================================
+   ПОДРАБОТКИ
+   ============================================================ */
+function openSubjobs(){
+  const s = S;
+  const modal = el(`<div></div>`);
+  const list = SUBJOBS.filter(j=>Object.entries(j.req).every(([k,v])=>(s.skills[k]||0)>=v));
+  modal.innerHTML = `
+    <h2>Подработки</h2>
+    <div class="muted">Энергия: ${s.energy}/100</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
+      ${list.map(j=>`<button onclick="doSubjob('${j.id}')">${escape(j.name)} — ${fmt(j.pay)}</button>`).join('')}
+    </div>
+    <button class="ghost" style="width:100%;margin-top:12px" onclick="closeModal()">Закрыть</button>
+  `;
+  openModal(modal);
+}
+
+function doSubjob(id){
+  const s = S;
+  const j = SUBJOBS.find(x=>x.id===id);
+  if (!j) return;
+  if (s.energy < 10){ toast('Слишком устали'); return; }
+  E.money(s, j.pay, 'Подработка: '+j.name, 'Доход');
+  E.energy(s, -j.fatigue);
+  E.stress(s, +3);
+  toast('+'+fmt(j.pay)+' · энергия '+s.energy);
+  closeModal(); save(S); renderAll();
+}
+
+/* ============================================================
+   ОБУЧЕНИЕ
+   ============================================================ */
+function startCourse(id){
+  const s = S;
+  const cr = COURSES.find(x=>x.id===id);
+  if (!cr) return;
+  if (s.cash < cr.cost){ toast('Недостаточно средств'); return; }
+  s.cash -= cr.cost;
+  s.courses.push({...cr, weeksLeft: cr.weeks});
+  s.tx.push({date:s.year*12+s.month, cat:'Обучение', reason:'Курс: '+cr.name, amount:-cr.cost});
+  save(S); renderAll(); toast('Вы записаны на курс');
+}
+
+/* ============================================================
+   РАБОТА
+   ============================================================ */
+function applyJob(careerId){
+  const s = S;
+  const cr = CAREERS.find(x=>x.id===careerId);
+  if (!cr) return;
+  const skillsOk = Object.entries(cr.req).every(([k,v])=>(s.skills[k]||0)>=v);
+  if (!skillsOk){ toast('Недостаточно навыков'); return; }
+  s.careerSearch = {vacancy:{...cr, salary: Math.round(cr.salary * DIFFICULTY[s.difficulty].incomeMul)}, waited:0};
+  save(S); renderAll(); toast('Отклик отправлен');
+}
+
+function acceptOffer(){
+  const s = S;
+  if (!s.pendingJobOffer) return;
+  s.job = s.pendingJobOffer; s.jobTenure = 0;
+  s.pendingJobOffer = null;
+  save(S); renderAll(); toast('Новая работа: '+s.job.name);
+}
+
+function declineOffer(){
+  const s = S; s.pendingJobOffer = null; save(S); renderAll();
+}
+
+/* ============================================================
+   ЖИЗНЬ: отдых и встречи
+   ============================================================ */
+function lifeRest(){
+  const s = S;
+  E.energy(s, +20); E.stress(s, -10);
+  save(S); renderAll(); toast('Отдых дома');
+}
+function lifeFriends(){
+  const s = S;
+  const cost = tng(12000);
+  if (s.cash < cost){ toast('Недостаточно средств'); return; }
+  s.cash -= cost;
+  s.tx.push({date:s.year*12+s.month, cat:'Развлечения', reason:'Встреча с друзьями', amount:-cost});
+  E.social(s, +10); E.stress(s, -5);
+  save(S); renderAll(); toast('Встреча с друзьями');
+}
+
+/* ============================================================
+   ИМУЩЕСТВО: ремонт и авто
+   ============================================================ */
+function openRepair(){
+  const s = S;
+  const modal = el(`<div></div>`);
+  modal.innerHTML = `
+    <h2>Ремонт</h2>
+    <div class="muted">Уровни отделки. Каждый повышает комфорт.</div>
+    <div class="btn-row" style="flex-direction:column;margin-top:10px">
+      <button onclick="doRepair(50000, 5)">Косметический ремонт (50 000 ₸) · +5 комфорта</button>
+      <button onclick="doRepair(200000, 15)">Качественная отделка (200 000 ₸) · +15 комфорта</button>
+      <button onclick="doRepair(500000, 25)">Полное обновление (500 000 ₸) · +25 комфорта</button>
+      <button class="ghost" onclick="closeModal()">Закрыть</button>
+    </div>
+  `;
+  openModal(modal);
+}
+
+function doRepair(cost, bonus){
+  const s = S;
+  const amt = tng(cost);
+  if (s.cash < amt){ toast('Недостаточно средств'); return; }
+  s.cash -= amt;
+  s.comfort = clamp(s.comfort+bonus,0,100);
+  s.realEstate[0].comfort = s.comfort;
+  s.tx.push({date:s.year*12+s.month, cat:'Имущество', reason:'Ремонт', amount:-amt});
+  closeModal(); save(S); renderAll(); toast('Ремонт выполнен');
+}
+
+function openCarBuy(){
+  const s = S;
+  const modal = el(`<div></div>`);
+  const cars = [
+    {name:'Старый бюджетный автомобиль', price:tng(2500000), maint:tng(40000)},
+    {name:'Подержанный средний класс', price:tng(6000000), maint:tng(60000)},
+    {name:'Новый автомобиль', price:tng(12000000), maint:tng(80000)},
+    {name:'Премиальный автомобиль', price:tng(25000000), maint:tng(140000)},
+  ];
+  modal.innerHTML = `
+    <h2>Покупка автомобиля</h2>
+    <div class="muted">Доступно: ${fmt(s.cash)}</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
+      ${cars.map(c=>`<button onclick="doBuyCar('${c.name}', ${c.price}, ${c.maint})">${c.name} — ${fmt(c.price)} (содержание ${fmt(c.maint)}/мес)</button>`).join('')}
+      <button class="ghost" onclick="closeModal()">Отмена</button>
+    </div>
+  `;
+  openModal(modal);
+}
+
+function doBuyCar(name, price, maint){
+  const s = S;
+  if (s.cash < price){ toast('Недостаточно средств'); return; }
+  s.cash -= price;
+  s.car = {name, value:price, maintenance:maint};
+  s.tx.push({date:s.year*12+s.month, cat:'Имущество', reason:'Покупка авто: '+name, amount:-price});
+  closeModal(); save(S); renderAll(); toast('Автомобиль куплен');
+}
+
+/* ============================================================
+   ВСПОМОГАТЕЛЬНЫЕ
+   ============================================================ */
+const MONTHS_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+function monthName(m){ return MONTHS_RU[m-1] || ''; }
+function skillName(k){ return {comm:'Коммуникация', anal:'Аналитика', digital:'Цифровые навыки', mgmt:'Управление', prof:'Проф. знания'}[k]||k; }
+function catName(c){ return {Доход:'Доход', 'Бытовые':'Бытовые', 'Кредит':'Кредит', 'Транспорт':'Транспорт', 'Обучение':'Обучение', 'Имущество':'Имущество', 'Банк':'Банк', 'Накопления':'Накопления', 'Развлечения':'Развлечения', 'Прочее':'Прочее'}[c]||c; }
+function escape(str){ return String(str).replace(/[&<>"']/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+
+/* ============================================================
+   ЭКСПОРТ В ГЛОБАЛЬНЫЙ SCOPE (для onclick в HTML)
+   ============================================================ */
+Object.assign(window, {
+  go, closeModal, openActiveEvent, chooseEventOption,
+  advanceDay, advanceWeek, openMonthClose, confirmMonth,
+  openPrepay, doPrepay, openSchedule, openBank, doRefinance, openDeposit, doDeposit,
+  openMoveToSavings, doMoveToSavings, openSubjobs, doSubjob,
+  startCourse, applyJob, acceptOffer, declineOffer,
+  lifeRest, lifeFriends, openRepair, doRepair, openCarBuy, doBuyCar,
+  startNew, continueGame, giftChoice, afterIntro
+});
+
+/* ============================================================
+   ИНИЦИАЛИЗАЦИЯ
+   ============================================================ */
+(function init(){
+  const existing = load();
+  if (existing){ S = migrate(existing); }
+  renderAll();
+  // раз в 30 сек автосохранение
+  setInterval(()=>{ if (S) save(S); }, 30000);
+})();
+</script>
+</body>
+</html>
